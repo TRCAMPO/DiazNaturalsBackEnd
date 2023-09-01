@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
 using Firebase.Auth;
+using BACK_END_DIAZNATURALS.DTO;
+using BACK_END_DIAZNATURALS.Encrypt;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -83,36 +85,38 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
      
         [HttpPost]
-        public async Task<ActionResult<Administrator>> PostAdministrator(Ad administrator)
+        public async Task<ActionResult<Administrator>> PostAdministrator(AdministratorDTO administrator)
         {
           if (_context.Administrators == null)
           {
               return Problem("Entity set 'DiazNaturalsContext.Administrators'  is null.");
           }
-            var administrator = new Administrator()
+            var auxAdministrator = new Administrator()
             {
-               NameAdministrator = 
+               NameAdministrator = administrator.NameAdministrator,
+               EmailAdministrator = administrator.EmailAdministrator,
+            };
+            _context.Administrators.Add(auxAdministrator);
+                      
+             await _context.SaveChangesAsync();
+            
+             Administrator userAux = _context.Administrators.
+                FirstOrDefault(i => i.NameAdministrator == administrator.NameAdministrator);
 
+            HashedFormat hash = HashEncryption.Hash(administrator.PasswordAdministrator);
+
+            var credential = new Credential()
+            {
+                IdAdministrator = userAux.IdAdministrator,
+                Password = hash.Password,
+                SaltCredential = hash.HashAlgorithm
             };
 
-            _context.Administrators.Add(administrator);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (AdministratorExists(administrator.IdAdministrator))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _context.Credentials.Add(credential);
 
-            return CreatedAtAction("GetAdministrator", new { id = administrator.IdAdministrator }, administrator);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetAdministrator", new { id = auxAdministrator.IdAdministrator }, administrator);
         }
 
         private bool AdministratorExists(int id)

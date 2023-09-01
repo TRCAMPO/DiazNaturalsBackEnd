@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authorization;
+using BACK_END_DIAZNATURALS.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +16,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
 
-
+builder.Services.AddSqlServer<DiazNaturalsContext>(builder.Configuration.GetConnectionString("DefaultConnection"));
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
