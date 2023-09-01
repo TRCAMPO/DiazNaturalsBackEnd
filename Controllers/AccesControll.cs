@@ -10,6 +10,7 @@ using System.Text;
 using System.Net;
 
 using Microsoft.AspNetCore.Http;
+using BACK_END_DIAZNATURALS.Jwt;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -33,44 +34,41 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
             }
-            User user = _context.Users.FirstOrDefault(i => i.UserName == name);
+            Administrator user = _context.Administrators.FirstOrDefault(i => i.EmailAdministrator == request.email);
 
             if (user == null)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
             }
-            var credential = _context.Credentials.FirstOrDefault(i => i.UserId == user.UserId);
+            var credential = _context.Credentials.FirstOrDefault(i => i.IdAdministrator == user.IdAdministrator);
 
             if (credential == null)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
             }
 
-            var hash = HashEncryption.CheckHash(passwordUser, credential.UserPassword, credential.CredentialSalt);
+            var hash = HashEncryption.CheckHash(request.password, credential.Password, credential.SaltCredential);
             if (!hash)
             {
                 return StatusCode(StatusCodes.Status401Unauthorized, new { token = "" });
             }
-            if (user.UserState.Equals(0))
-            {
-                return StatusCode(StatusCodes.S, new { token = "" });
-            }
-
-            var jwt = new Jw
+          
+            var jwt = new JwtData
             {
                 Key = "LabDistriinscUni.@-l",
                 Issuer = "http://www.DistriInscriptions.somee.com/",
                 Audience = "http://www.DistriInscriptions.somee.com",
                 Subject = "basewebInscriptions"
             };
+
             var claims = new[]
             {
                 new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub, jwt.Subject),
                 new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
-                new Claim("id", user.UserId.ToString()),
-                new Claim("Correo", user.UserEmail),
-                new Claim("Nombre", user.UserName)
+                new Claim("id", user.IdAdministrator.ToString()),
+                new Claim("Correo", user.EmailAdministrator),
+                new Claim("Nombre", user.NameAdministrator)
             };
 
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes((jwt.Key)));
@@ -82,40 +80,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 expires: DateTime.Now.AddMinutes(15),
                 signingCredentials: singIn
                 );
-
-
-
-            if (request.email == _context.Administrators.Find(1).EmailAdministrator && request.password == _context.Administrators.Find(1).contrasena)
-            {
-                var KeyBytes = Encoding.ASCII.GetBytes(secretKey);
-                var claims = new ClaimsIdentity();
-
-                claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, request.correo));
-
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = claims,
-                    Expires = DateTime.UtcNow.AddMinutes(5),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(KeyBytes), SecurityAlgorithms.HmacSha256Signature),
-                };
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var tokenConfig = tokenHandler.CreateToken(tokenDescriptor);
-
-                string tokencreado = tokenHandler.WriteToken(tokenConfig);
-
-                return StatusCode(StatusCodes.Status200OK, new { token = tokencreado });
-
+                return StatusCode(StatusCodes.Status200OK, new { token = token });
             }
           
-            else
-            {
-            
-                return StatusCode(StatusCodes.Status401Unauthorized, new { token = "" });
-
-            }
-        }
-
-        private 
+      
     }
 }
