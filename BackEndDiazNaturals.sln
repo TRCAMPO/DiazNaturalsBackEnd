@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BACK END DIAZNATURALS", "BACK END DIAZNATURALS.csproj", "{2F7DC90E-A3C7-492E-9C25-C5469FE2F270}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackEndDiazNaturals", "BackEndDiazNaturals.csproj", "{2F7DC90E-A3C7-492E-9C25-C5469FE2F270}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
