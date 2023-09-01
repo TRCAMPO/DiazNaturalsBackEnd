@@ -11,6 +11,11 @@ using System.Net;
 
 using Microsoft.AspNetCore.Http;
 using BACK_END_DIAZNATURALS.Jwt;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
+using System;
+using Credential = BACK_END_DIAZNATURALS.Model.Credential;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -19,10 +24,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
     public class AccesControll : ControllerBase
     {
         private readonly DiazNaturalsContext _context;
+        private readonly Random _random = new Random();
+        private readonly IMemoryCache _cache;
+        private const string CacheKey = "RandomCode";
+        private String code;
 
-        public AccesControll(DiazNaturalsContext context)
+        public AccesControll(DiazNaturalsContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
 
@@ -55,10 +65,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
           
             var jwt = new JwtData
             {
-                Key = "LabDistriinscUni.@-l",
-                Issuer = "http://www.DistriInscriptions.somee.com/",
-                Audience = "http://www.DistriInscriptions.somee.com",
-                Subject = "basewebInscriptions"
+                Key = "TrabajoCampoDe.@-l",
+                Issuer = "https://localhost:7200/",
+                Audience = "https://localhost:7200/",
+                Subject = "basewebDiazNaturals"
             };
 
             var claims = new[]
@@ -80,9 +90,84 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 expires: DateTime.Now.AddMinutes(15),
                 signingCredentials: singIn
                 );
-                return StatusCode(StatusCodes.Status200OK, new { token = token });
+                return StatusCode(StatusCodes.Status200OK, new { token = new JwtSecurityTokenHandler().WriteToken(token) });
             }
-          
-      
+
+
+        [HttpPost]
+        [Route("SendEmail")]
+        public async Task<IActionResult> SendEmail([FromBody] EmailDTO email)
+        {
+            if (_context.Administrators == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
+            }
+            GenerateRandomCode();
+            try
+            {
+               
+                EmailService emailService = new EmailService();
+                await emailService.SendEmail(email.Email, "Recuperación de contraseña DiazNaturals", code);
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPost]
+        [Route("ValidarCode")]
+        public IActionResult ValidarCode([FromBody] CodeValidator codeValidator)
+        {
+           if (codeValidator == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
+            }
+            
+            bool emailExists = _context.Administrators.Any(a => a.EmailAdministrator == codeValidator.Email);
+            string cachedCode;
+            var ca = _cache.TryGetValue(CacheKey, out  cachedCode);
+           
+            if (emailExists && codeValidator.Code == cachedCode)
+            {
+                return Ok(new { exists = emailExists });
+            }
+            return StatusCode(StatusCodes.Status404NotFound, new { token = cachedCode });
+        }
+
+        [HttpPut("EditarContraseña")]
+        // [Authorize]
+        public async Task<IActionResult> PutAdminsitratorPassword(InputCredentialDTO newCredential)
+        {
+            Administrator administrator = _context.Administrators.FirstOrDefault(a => a.EmailAdministrator == newCredential.email);
+            if (administrator == null)
+            {
+                return NotFound();
+            }
+            var credential = _context.Credentials.FirstOrDefault(i => i.IdAdministrator == administrator.IdAdministrator);
+            HashedFormat hash = HashEncryption.Hash( newCredential.password);
+            credential.Password = hash.Password;
+            credential.SaltCredential = hash.HashAlgorithm;
+             await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+
+
+            private  void GenerateRandomCode(int length = 8)
+        {
+             const string AllowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+           
+            char[] result = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = AllowedChars[_random.Next(0, AllowedChars.Length)];
+            }
+            string randomCode = new string(result);
+            code = randomCode;
+            _cache.Set(CacheKey, randomCode);
+
+        }
     }
 }
