@@ -13,7 +13,7 @@ public class EmailService
             {
                 client.EnableSsl = true;
                 client.UseDefaultCredentials = false;
-                client.Credentials = new NetworkCredential("diaznaturalsdistri@gmail.com", "dzpchzpiybrgkjrl");
+                client.Credentials = new NetworkCredential("diaznaturalsdistri@gmail.com", "zpuksazfwpqxqykq");
 
                 var message = new MailMessage("diaznaturalsdistri@gmail.com", emailAddress, subject, messageSend);
 
