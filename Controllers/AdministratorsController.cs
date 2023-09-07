@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BACK_END_DIAZNATURALS.Model;
 using Firebase.Auth;
 using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Encrypt;
+using BACK_END_DIAZNATURALS.Model;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -23,7 +23,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             _context = context;
         }
 
-        // GET: api/Administrators
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Administrator>>> GetAdministrators()
         {
@@ -34,7 +34,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return await _context.Administrators.ToListAsync();
         }
 
-        // GET: api/Administrators/5
+    
         [HttpGet("{id}")]
         public async Task<ActionResult<Administrator>> GetAdministrator(int id)
         {
@@ -52,8 +52,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return administrator;
         }
 
-        // PUT: api/Administrators/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAdministrator(int id, Administrator administrator)
         {
@@ -91,30 +90,30 @@ namespace BACK_END_DIAZNATURALS.Controllers
           {
               return Problem("Entity set 'DiazNaturalsContext.Administrators'  is null.");
           }
-            var auxAdministrator = new Administrator()
-            {
-               NameAdministrator = administrator.NameAdministrator,
-               EmailAdministrator = administrator.EmailAdministrator,
-            };
-            _context.Administrators.Add(auxAdministrator);
-                      
-             await _context.SaveChangesAsync();
-            
-             Administrator userAux = _context.Administrators.
-                FirstOrDefault(i => i.NameAdministrator == administrator.NameAdministrator);
 
             HashedFormat hash = HashEncryption.Hash(administrator.PasswordAdministrator);
 
             var credential = new Credential()
             {
-                IdAdministrator = userAux.IdAdministrator,
-                Password = hash.Password,
+                PasswordCredential = hash.Password,
                 SaltCredential = hash.HashAlgorithm
             };
-
             _context.Credentials.Add(credential);
 
             await _context.SaveChangesAsync();
+
+            int id = credential.IdCredential;
+
+            var auxAdministrator = new Administrator()
+            {
+               NameAdministrator = administrator.NameAdministrator,
+               EmailAdministrator = administrator.EmailAdministrator,
+               IdCredential = id,
+            };
+
+            _context.Administrators.Add(auxAdministrator);
+                      
+             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetAdministrator", new { id = auxAdministrator.IdAdministrator }, administrator);
         }
