@@ -23,18 +23,26 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
      
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
         {
           if (_context.Categories == null)
           {
               return NotFound();
           }
-            return await _context.Categories.ToListAsync();
+            var categoryDto = await _context.Categories
+            .Select(c => new CategoryDTO
+            {
+                IdCategory = c.IdCategory,
+                NameCategory = c.NameCategory
+            })
+            .ToListAsync();
+
+            return Ok(categoryDto);
         }
 
       
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> GetCategory(int id)
+        public async Task<ActionResult<CategoryDTO>> GetCategory(int id)
         {
           if (_context.Categories == null)
           {
@@ -46,8 +54,12 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return NotFound();
             }
-
-            return category;
+            CategoryDTO categoryDTO = new CategoryDTO
+            {
+                IdCategory = category.IdCategory,
+                NameCategory = category.NameCategory,
+            };
+            return categoryDTO;
         }
 
 
