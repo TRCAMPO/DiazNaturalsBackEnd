@@ -4,9 +4,9 @@ using System.Text.Json.Serialization;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authorization;
-using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.Services;
 using Google.Cloud.Storage.V1;
+using BACK_END_DIAZNATURALS.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 

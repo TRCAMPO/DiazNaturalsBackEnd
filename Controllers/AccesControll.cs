@@ -1,6 +1,5 @@
 ﻿using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Encrypt;
-using BACK_END_DIAZNATURALS.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.IdentityModel.Tokens;
@@ -13,9 +12,10 @@ using Microsoft.AspNetCore.Http;
 using BACK_END_DIAZNATURALS.Jwt;
 using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using System;
-using Credential = BACK_END_DIAZNATURALS.Model.Credential;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using BACK_END_DIAZNATURALS.Model;
+using Azure.Core;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -50,14 +50,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
             }
-            var credential = _context.Credentials.FirstOrDefault(i => i.IdAdministrator == user.IdAdministrator);
+
+            var credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == user.IdCredential);
 
             if (credential == null)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
             }
 
-            var hash = HashEncryption.CheckHash(request.password, credential.Password, credential.SaltCredential);
+            var hash = HashEncryption.CheckHash(request.password, credential.PasswordCredential, credential.SaltCredential);
             if (!hash)
             {
                 return StatusCode(StatusCodes.Status401Unauthorized, new { token = "" });
@@ -102,17 +103,32 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
             }
-            GenerateRandomCode();
             try
             {
-               
-                EmailService emailService = new EmailService();
-                await emailService.SendEmail(email.Email, "Recuperación de contraseña DiazNaturals", code);
-                return Ok();
+                var mailAddress = new System.Net.Mail.MailAddress(email.Email);
             }
             catch
             {
-                return BadRequest();
+                return BadRequest("Email no válido");
+            }
+            if (_context.Administrators.Any(i => i.EmailAdministrator == email.Email))
+            {
+                GenerateRandomCode();
+                try
+                {
+
+                    EmailService emailService = new EmailService();
+                    await emailService.SendEmail(email.Email, "Recuperación de contraseña DiazNaturals", code);
+                    return Ok();
+                }
+                catch
+                {
+                    return BadRequest();
+                }
+            }
+            else
+            {
+                return NotFound("Email no encontrado");
             }
         }
 
@@ -145,9 +161,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return NotFound();
             }
-            var credential = _context.Credentials.FirstOrDefault(i => i.IdAdministrator == administrator.IdAdministrator);
+            var credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == administrator.IdCredential);
             HashedFormat hash = HashEncryption.Hash( newCredential.password);
-            credential.Password = hash.Password;
+            credential.PasswordCredential = hash.Password;
             credential.SaltCredential = hash.HashAlgorithm;
              await _context.SaveChangesAsync();
             return Ok();
