@@ -23,7 +23,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetProducts()
         {
           if (_context.Products == null)
           {
@@ -53,20 +53,33 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        public async Task<ActionResult<ProductDTO>> GetProduct(int id)
         {
           if (_context.Products == null)
           {
               return NotFound();
           }
-            var product = await _context.Products.FindAsync(id);
+        
 
-            if (product == null)
+       
+
+            var productDTO = await _context.Products
+            .Where(p => p.IdProduct == id)
+            .Select(p => new ProductDTO
             {
-                return NotFound();
-            }
+                IdProduct = p.IdProduct,
+                name = p.NameProduct, 
+                supplier = _context.Suppliers.FirstOrDefault(s => s.IdSupplier == p.IdSupplier).NameSupplier ?? "Proveedor no encontrado",
+                price = p.PriceProduct,
+                amount = p.QuantityProduct,
+                presentation = _context.Presentations.FirstOrDefault(pr => pr.IdPresentation == p.IdPresentation).NamePresentation,
+                category = _context.Categories.FirstOrDefault(c => c.IdCategory == p.IdCategory).NameCategory,
+                description = p.DescriptionProduct,
+                image = p.ImageProduct
+             })
+            .FirstOrDefaultAsync();
 
-            return product;
+            return productDTO;
         }
 
     
@@ -101,7 +114,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
     
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(ProductDTO productDTO)
+        public async Task<ActionResult<Product>> PostProduct(ProductAddDTO productDTO)
         {
           if (_context.Products == null || productDTO==null)
           {

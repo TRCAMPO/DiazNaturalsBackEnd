@@ -43,7 +43,7 @@ catch (Exception ex)
 builder.Services.AddScoped<FirebaseStorageService>();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    options.JsonSerializerOptions.IgnoreNullValues = true;
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(optionss =>
 {
