@@ -23,18 +23,26 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Presentation>>> GetPresentations()
+        public async Task<ActionResult<IEnumerable<PresentationDTO>>> GetPresentations()
         {
           if (_context.Presentations == null)
           {
               return NotFound();
           }
-            return await _context.Presentations.ToListAsync();
+            var presentationDTOs = await _context.Presentations
+           .Select(c => new PresentationDTO
+           {
+              IdPresentation=c.IdPresentation,
+              NamePresentation=c.NamePresentation,
+           })
+           .ToListAsync();
+
+            return Ok(presentationDTOs);
         }
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Presentation>> GetPresentation(int id)
+        public async Task<ActionResult<PresentationDTO>> GetPresentation(int id)
         {
           if (_context.Presentations == null)
           {
@@ -46,8 +54,12 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return NotFound();
             }
-
-            return presentation;
+            PresentationDTO presentationDTO = new PresentationDTO
+            {
+                IdPresentation = presentation.IdPresentation,
+                NamePresentation = presentation.NamePresentation,
+            };
+            return presentationDTO;
         }
 
 

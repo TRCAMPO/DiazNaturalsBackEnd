@@ -1,8 +1,7 @@
 ﻿namespace BACK_END_DIAZNATURALS.DTO
 {
-    public class ProductDTO
+    public class ProductAddDTO
     {
-        public int IdProduct { get; set; }
         public string name { get; set; } = null!;
         public string supplier { get; set; } = null!;
         public int price { get; set; }
