@@ -5,6 +5,8 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using BACK_END_DIAZNATURALS.Model;
+using BACK_END_DIAZNATURALS.Services;
+using Google.Cloud.Storage.V1;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,26 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddSqlServer<DiazNaturalsContext>(builder.Configuration.GetConnectionString("DefaultConnection"));
+try
+{
+    IConfiguration configuration = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json")
+        .Build();
+    string apiKey = configuration["Firebase:ApiKey"];
+    string authDomain = configuration["Firebase:AuthDomain"];
+    string projectId = configuration["Firebase:ProjectId"];
+    string storageBucket = configuration["Firebase:StorageBucket"];
+
+    var storage = StorageClient.Create();
+}
+catch (Exception ex)
+{
+    // Registra la excepción para depuración
+    Console.WriteLine("Excepción no controlada: " + ex.ToString());
+    // También puedes registrar la excepción en un archivo de registro o en otra ubicación según tus necesidades
+}
+builder.Services.AddScoped<FirebaseStorageService>();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
