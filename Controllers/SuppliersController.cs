@@ -23,13 +23,24 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Supplier>>> GetSuppliers()
+        public async Task<ActionResult<IEnumerable<SupplierDTO>>> GetSuppliers()
         {
           if (_context.Suppliers == null)
           {
               return NotFound();
           }
-            return await _context.Suppliers.ToListAsync();
+            var supplierDTOs = await _context.Suppliers
+              .Select(c => new SupplierDTO
+              {
+                  IdSupplier = c.IdSupplier,
+                  NameSupplier = c.NameSupplier,
+                  AddressSupplier= c.AddressSupplier,
+                  EmailSupplier = c.EmailSupplier,
+                  NitSupplier = c.NitSupplier,
+                  PhoneSupplier = c.PhoneSupplier
+              })
+              .ToListAsync();
+            return supplierDTOs;
         }
 
 
@@ -46,7 +57,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return NotFound();
             }
-
+            SupplierDTO supplierDTO = new SupplierDTO
+            {
+                IdSupplier = supplier.IdSupplier,
+                NameSupplier = supplier.NameSupplier,
+                AddressSupplier = supplier.AddressSupplier,
+                EmailSupplier = supplier.EmailSupplier,
+                PhoneSupplier = supplier.PhoneSupplier,
+                NitSupplier = supplier.NitSupplier,
+            };
             return supplier;
         }
 
