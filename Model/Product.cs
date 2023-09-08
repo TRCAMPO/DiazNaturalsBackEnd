@@ -23,7 +23,11 @@ public partial class Product
 
     public string ImageProduct { get; set; } = null!;
 
+    public bool IsActiveProduct { get; set; }
+
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
+
+    public virtual ICollection<Entry> Entries { get; set; } = new List<Entry>();
 
     public virtual Category IdCategoryNavigation { get; set; } = null!;
 

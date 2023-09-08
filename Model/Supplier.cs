@@ -17,5 +17,7 @@ public partial class Supplier
 
     public string EmailSupplier { get; set; } = null!;
 
+    public bool IsActiveSupplier { get; set; }
+
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

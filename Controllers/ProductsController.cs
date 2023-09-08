@@ -21,9 +21,39 @@ namespace BACK_END_DIAZNATURALS.Controllers
             _context = context;
         }
 
+        [HttpGet]
+    //    [Route("all")]
+        public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetAllProducts()
+        {
+            if (_context.Products == null)
+            {
+                return NotFound();
+            }
+
+            var products = _context.Products
+              .Include(p => p.IdSupplierNavigation)
+              .Include(p => p.IdPresentationNavigation)
+              .Include(p => p.IdCategoryNavigation)
+              .Select(p => new
+              {
+                  IdProduct = p.IdProduct,
+                  supplier = p.IdSupplierNavigation.NameSupplier,
+                  presentation = p.IdPresentationNavigation.NamePresentation,
+                  category = p.IdCategoryNavigation.NameCategory,
+                  name = p.NameProduct,
+                  price = p.PriceProduct,
+                  amount = p.QuantityProduct,
+                  description = p.DescriptionProduct,
+                  image = p.ImageProduct
+              })
+              .ToList();
+
+            return Ok(products);
+        }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetProducts()
+        [Route("active")]
+        public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetActiveProducts()
         {
           if (_context.Products == null)
           {
@@ -31,6 +61,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
           }
 
             var products = _context.Products
+              .Where(p=> p.IsActiveProduct==true)
               .Include(p => p.IdSupplierNavigation) 
               .Include(p => p.IdPresentationNavigation) 
               .Include(p => p.IdCategoryNavigation) 
@@ -51,6 +82,36 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return Ok(products);
         }
 
+        [HttpGet]
+        [Route("inactive")]
+        public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetInactiveProducts()
+        {
+            if (_context.Products == null)
+            {
+                return NotFound();
+            }
+
+            var products = _context.Products
+              .Where(p => p.IsActiveProduct == false)
+              .Include(p => p.IdSupplierNavigation)
+              .Include(p => p.IdPresentationNavigation)
+              .Include(p => p.IdCategoryNavigation)
+              .Select(p => new
+              {
+                  IdProduct = p.IdProduct,
+                  supplier = p.IdSupplierNavigation.NameSupplier,
+                  presentation = p.IdPresentationNavigation.NamePresentation,
+                  category = p.IdCategoryNavigation.NameCategory,
+                  name = p.NameProduct,
+                  price = p.PriceProduct,
+                  amount = p.QuantityProduct,
+                  description = p.DescriptionProduct,
+                  image = p.ImageProduct
+              })
+              .ToList();
+
+            return Ok(products);
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDTO>> GetProduct(int id)
@@ -59,9 +120,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
           {
               return NotFound();
           }
-        
-
-       
 
             var productDTO = await _context.Products
             .Where(p => p.IdProduct == id)
@@ -82,15 +140,30 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return productDTO;
         }
 
-    
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+
+        [HttpPut("{name}")]
+        public async Task<IActionResult> PutProduct(string name, ProductDTO productDTO)
         {
-            if (id != product.IdProduct)
+            var product = _context.Products.FirstOrDefault(p => p.NameProduct == name);
+            if (product == null || product == null || !product.IsActiveProduct)
             {
                 return BadRequest();
             }
-
+            var suplier = _context.Suppliers.FirstOrDefault(i => i.NameSupplier == productDTO.supplier);
+            var presentation = _context.Presentations.FirstOrDefault(i => i.NamePresentation == productDTO.presentation);
+            var category = _context.Categories.FirstOrDefault(i => i.NameCategory == productDTO.category);
+            if (suplier == null || presentation == null || category == null)
+            {
+                return Unauthorized();
+            }
+            product.NameProduct = productDTO.name;
+            product.DescriptionProduct = productDTO.description;
+            product.ImageProduct = productDTO.image;
+            product.PriceProduct = productDTO.price;
+            product.IdSupplier = suplier.IdSupplier;
+            product.IdPresentation = presentation.IdPresentation;
+            product.IdCategory = category.IdCategory;
+            product.QuantityProduct = productDTO.amount;
             _context.Entry(product).State = EntityState.Modified;
 
             try
@@ -99,7 +172,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProductExists(id))
+                if (!ProductExists(product.IdProduct))
                 {
                     return NotFound();
                 }
@@ -137,6 +210,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 QuantityProduct= productDTO.amount,
                 DescriptionProduct= productDTO.description,
                 ImageProduct= productDTO.image,
+                IsActiveProduct=true,
         };
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
