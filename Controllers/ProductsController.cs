@@ -141,7 +141,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProduct", new { id = product.IdProduct }, product);
+            return Ok();
         }
 
       
