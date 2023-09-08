@@ -21,7 +21,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             string fileName = file.FileName; 
             string url = await _firebaseStorageService.ImageUploadAsync(file, fileName);
-            return Ok(new { Url = url });
+            string[] urlParts = url.Split('/');
+            string imageName = urlParts[urlParts.Length - 1]; 
+            return Ok(new { FileName = imageName });
         }
 
         [HttpGet("{imageName}")]
