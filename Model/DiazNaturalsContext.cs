@@ -25,6 +25,8 @@ public partial class DiazNaturalsContext : DbContext
 
     public virtual DbSet<Credential> Credentials { get; set; }
 
+    public virtual DbSet<Entry> Entries { get; set; }
+
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderHistory> OrderHistories { get; set; }
@@ -174,6 +176,25 @@ public partial class DiazNaturalsContext : DbContext
                 .HasColumnName("salt_credential");
         });
 
+        modelBuilder.Entity<Entry>(entity =>
+        {
+            entity.HasKey(e => e.IdEntry).HasName("PK_Id_Entry");
+
+            entity.ToTable("ENTRIES");
+
+            entity.Property(e => e.IdEntry).HasColumnName("id_entry");
+            entity.Property(e => e.DateEntry)
+                .HasColumnType("datetime")
+                .HasColumnName("date_entry");
+            entity.Property(e => e.IdProduct).HasColumnName("id_product");
+            entity.Property(e => e.QuantityProductEntry).HasColumnName("quantity_product_entry");
+
+            entity.HasOne(d => d.IdProductNavigation).WithMany(p => p.Entries)
+                .HasForeignKey(d => d.IdProduct)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_IdProduct_Entry");
+        });
+
         modelBuilder.Entity<Order>(entity =>
         {
             entity.HasKey(e => e.IdOrder).HasName("PK_Id_Order");
@@ -250,6 +271,7 @@ public partial class DiazNaturalsContext : DbContext
                 .HasMaxLength(250)
                 .IsUnicode(false)
                 .HasColumnName("image_product");
+            entity.Property(e => e.IsActiveProduct).HasColumnName("is_active_product");
             entity.Property(e => e.NameProduct)
                 .HasMaxLength(250)
                 .IsUnicode(false)
@@ -260,17 +282,17 @@ public partial class DiazNaturalsContext : DbContext
             entity.HasOne(d => d.IdCategoryNavigation).WithMany(p => p.Products)
                 .HasForeignKey(d => d.IdCategory)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_IdCategory_Carts");
+                .HasConstraintName("FK_IdCategory_Product");
 
             entity.HasOne(d => d.IdPresentationNavigation).WithMany(p => p.Products)
                 .HasForeignKey(d => d.IdPresentation)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_IdPresentation_Carts");
+                .HasConstraintName("FK_IdPresentation_Product");
 
             entity.HasOne(d => d.IdSupplierNavigation).WithMany(p => p.Products)
                 .HasForeignKey(d => d.IdSupplier)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_IdSupplier_Carts");
+                .HasConstraintName("FK_IdSupplier_Product");
         });
 
         modelBuilder.Entity<Status>(entity =>
@@ -281,9 +303,7 @@ public partial class DiazNaturalsContext : DbContext
 
             entity.HasIndex(e => e.NameStatus, "UQ_Name_Status").IsUnique();
 
-            entity.Property(e => e.IdStatus)
-                .ValueGeneratedNever()
-                .HasColumnName("id_status");
+            entity.Property(e => e.IdStatus).HasColumnName("id_status");
             entity.Property(e => e.NameStatus)
                 .HasMaxLength(100)
                 .IsUnicode(false)
@@ -309,6 +329,7 @@ public partial class DiazNaturalsContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("email_supplier");
+            entity.Property(e => e.IsActiveSupplier).HasColumnName("is_active_supplier");
             entity.Property(e => e.NameSupplier)
                 .HasMaxLength(250)
                 .IsUnicode(false)
