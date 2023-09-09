@@ -1,8 +1,8 @@
 ﻿namespace BACK_END_DIAZNATURALS.DTO
 {
-    public class SupplierDeleteDTO
+    public class ClientDeleteDTO
     {
-        public string nitSupplier { get; set; }
+        public string nitClient { get; set; }
         public bool isActive { get; set; }
     }
 }

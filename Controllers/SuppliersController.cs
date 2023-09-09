@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using BACK_END_DIAZNATURALS.DTO;
+using BACK_END_DIAZNATURALS.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BACK_END_DIAZNATURALS.Model;
-using BACK_END_DIAZNATURALS.DTO;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -26,16 +21,16 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Route("all")]
         public async Task<ActionResult<IEnumerable<SupplierDTO>>> GetAllSuppliers()
         {
-          if (_context.Suppliers == null)
-          {
-              return NotFound();
-          }
+            if (_context.Suppliers == null)
+            {
+                return NotFound();
+            }
             var supplierDTOs = await _context.Suppliers
               .Select(c => new SupplierDTO
               {
                   IdSupplier = c.IdSupplier,
                   NameSupplier = c.NameSupplier,
-                  AddressSupplier= c.AddressSupplier,
+                  AddressSupplier = c.AddressSupplier,
                   EmailSupplier = c.EmailSupplier,
                   NitSupplier = c.NitSupplier,
                   PhoneSupplier = c.PhoneSupplier
@@ -53,7 +48,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 return NotFound();
             }
             var supplierDTOs = await _context.Suppliers
-                .Where(c=> c.IsActiveSupplier == true)
+                .Where(c => c.IsActiveSupplier == true)
               .Select(c => new SupplierDTO
               {
                   IdSupplier = c.IdSupplier,
@@ -93,10 +88,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Supplier>> GetSupplier(int id)
         {
-          if (_context.Suppliers == null)
-          {
-              return NotFound();
-          }
+            if (_context.Suppliers == null)
+            {
+                return NotFound();
+            }
             var supplier = await _context.Suppliers.FindAsync(id);
 
             if (supplier == null || !supplier.IsActiveSupplier)
@@ -115,12 +110,12 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return supplier;
         }
 
-        
-        [HttpPut("{name}")]
+
+        [HttpPut("{nitSupplier}")]
         public async Task<IActionResult> PutSupplier(string name, SupplierAddDTO supplierDTO)
         {
             var supplier = _context.Suppliers.FirstOrDefault(c => c.NameSupplier == name);
-            if(supplier == null || !supplier.IsActiveSupplier)
+            if (supplier == null || !supplier.IsActiveSupplier)
             {
                 return NotFound(supplier);
             }
@@ -132,13 +127,13 @@ namespace BACK_END_DIAZNATURALS.Controllers
             supplier.NitSupplier = supplierDTO.NitSupplier;
 
             _context.Entry(supplier).State = EntityState.Modified;
-  
+
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
-            { 
+            {
                 if (!SupplierExists(supplier.IdSupplier))
                 {
                     return NotFound();
@@ -156,10 +151,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [HttpPost]
         public async Task<ActionResult<Supplier>> PostSupplier(SupplierAddDTO supplierDTO)
         {
-          if (_context.Suppliers == null)
-          {
-              return Problem("Entity set 'DiazNaturalsContext.Suppliers'  is null.");
-          }
+            if (_context.Suppliers == null)
+            {
+                return Problem("Entity set 'DiazNaturalsContext.Suppliers'  is null.");
+            }
             var supplier = new Supplier
             {
                 NitSupplier = supplierDTO.NitSupplier,
@@ -168,7 +163,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 PhoneSupplier = supplierDTO.PhoneSupplier,
                 EmailSupplier = supplierDTO.EmailSupplier,
                 IsActiveSupplier = true,
-                
+
             };
 
             _context.Suppliers.Add(supplier);
@@ -182,9 +177,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         public async Task<ActionResult> PatchSupplier(SupplierDeleteDTO supplierDTO)
         {
-            var supplier = _context.Suppliers.FirstOrDefault(i => i.NameSupplier == supplierDTO.name);
+            var supplier = _context.Suppliers.FirstOrDefault(i => i.NitSupplier == supplierDTO.nitSupplier);
 
-            if( supplierDTO == null|| supplier==null)
+            if (supplierDTO == null || supplier == null)
             {
                 return NotFound();
             }
