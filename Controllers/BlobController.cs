@@ -21,10 +21,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest("Archivo no válido");
 
-            string fileName = file.FileName; 
+            string fileName = file.FileName;
             string url = await _firebaseStorageService.ImageUploadAsync(file, fileName);
             string[] urlParts = url.Split('/');
-            string imageName = urlParts[urlParts.Length - 1]; 
+            string imageName = urlParts[urlParts.Length - 1];
             return Ok(new { FileName = imageName });
         }
 
@@ -35,10 +35,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             if (imageStream == null)
             {
-                return NotFound(); 
+                return NotFound();
             }
 
-            return File(imageStream, "image/png"); 
+            return File(imageStream, "image/png");
         }
     }
 }

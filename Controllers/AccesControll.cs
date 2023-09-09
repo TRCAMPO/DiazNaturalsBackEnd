@@ -1,21 +1,13 @@
 ﻿using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Encrypt;
+using BACK_END_DIAZNATURALS.Jwt;
+using BACK_END_DIAZNATURALS.Model;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Net;
-
-using Microsoft.AspNetCore.Http;
-using BACK_END_DIAZNATURALS.Jwt;
-using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
-using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using BACK_END_DIAZNATURALS.Model;
-using Azure.Core;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -63,7 +55,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return StatusCode(StatusCodes.Status401Unauthorized, new { token = "" });
             }
-          
+
             var jwt = new JwtData
             {
                 Key = "TrabajoCampoDe.@-l",
@@ -91,8 +83,8 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 expires: DateTime.Now.AddMinutes(15),
                 signingCredentials: singIn
                 );
-                return StatusCode(StatusCodes.Status200OK, new { token = new JwtSecurityTokenHandler().WriteToken(token) });
-            }
+            return StatusCode(StatusCodes.Status200OK, new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+        }
 
 
         [HttpPost]
@@ -136,15 +128,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Route("ValidarCode")]
         public IActionResult ValidarCode([FromBody] CodeValidator codeValidator)
         {
-           if (codeValidator == null)
+            if (codeValidator == null)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
             }
-            
+
             bool emailExists = _context.Administrators.Any(a => a.EmailAdministrator == codeValidator.Email);
             string cachedCode;
-            var ca = _cache.TryGetValue(CacheKey, out  cachedCode);
-           
+            var ca = _cache.TryGetValue(CacheKey, out cachedCode);
+
             if (emailExists && codeValidator.Code == cachedCode)
             {
                 return Ok(new { exists = emailExists });
@@ -162,19 +154,19 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 return NotFound();
             }
             var credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == administrator.IdCredential);
-            HashedFormat hash = HashEncryption.Hash( newCredential.password);
+            HashedFormat hash = HashEncryption.Hash(newCredential.password);
             credential.PasswordCredential = hash.Password;
             credential.SaltCredential = hash.HashAlgorithm;
-             await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return Ok();
         }
 
 
 
-            private  void GenerateRandomCode(int length = 8)
+        private void GenerateRandomCode(int length = 8)
         {
-             const string AllowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-           
+            const string AllowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
             char[] result = new char[length];
             for (int i = 0; i < length; i++)
             {
