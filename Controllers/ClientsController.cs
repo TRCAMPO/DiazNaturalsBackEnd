@@ -18,48 +18,111 @@ namespace BACK_END_DIAZNATURALS.Controllers
         private readonly DiazNaturalsContext _context;
         private readonly Random _random = new Random();
 
+
+
         public ClientsController(DiazNaturalsContext context)
         {
             _context = context;
         }
 
 
+
         [HttpGet]
+        [Route("all")]
         public async Task<ActionResult<IEnumerable<ClientsDTO>>> GetClients()
         {
-          if (_context.Clients == null)
-          {
-              return NotFound();
-          }
+            if (_context.Clients == null)
+            {
+                return NotFound();
+            }
 
             var clientDTOs = await _context.Clients
           .Select(client => new ClientsDTO
           {
-             idClient= client.IdClient,
-             nameClient= client.NameClient,
-             addressClient= client.AddressClient,
-             cityClient= client.CityClient,
-             emailClient = client.EmailClient,
-             nameContactClient= client.NameContactClient,
-             nitClient= client.NitClient,
-             phoneClient= client.PhoneClient,
-             stateClient = client.StateClient,
-
+              idClient = client.IdClient,
+              nameClient = client.NameClient,
+              addressClient = client.AddressClient,
+              cityClient = client.CityClient,
+              emailClient = client.EmailClient,
+              nameContactClient = client.NameContactClient,
+              nitClient = client.NitClient,
+              phoneClient = client.PhoneClient,
+              stateClient = client.StateClient,
           })
           .ToListAsync();
 
             return clientDTOs;
-
-            
         }
+
+
+
+        [HttpGet]
+        [Route("active")]
+        public async Task<ActionResult<IEnumerable<ClientsDTO>>> GetActiveClients()
+        {
+            if (_context.Clients == null)
+            {
+                return NotFound();
+            }
+
+            var clientDTOs = await _context.Clients
+                .Where(p=>p.IsActiveClient==true)
+          .Select(client => new ClientsDTO
+          {
+              idClient = client.IdClient,
+              nameClient = client.NameClient,
+              addressClient = client.AddressClient,
+              cityClient = client.CityClient,
+              emailClient = client.EmailClient,
+              nameContactClient = client.NameContactClient,
+              nitClient = client.NitClient,
+              phoneClient = client.PhoneClient,
+              stateClient = client.StateClient,
+          })
+          .ToListAsync();
+
+            return Ok(clientDTOs);
+        }
+
+
+
+        [HttpGet]
+        [Route("inactive")]
+        public async Task<ActionResult<IEnumerable<ClientsDTO>>> GetInactiveClients()
+        {
+            if (_context.Clients == null)
+            {
+                return NotFound();
+            }
+
+            var clientDTOs = await _context.Clients
+                .Where(p => p.IsActiveClient == false)
+          .Select(client => new ClientsDTO
+          {
+              idClient = client.IdClient,
+              nameClient = client.NameClient,
+              addressClient = client.AddressClient,
+              cityClient = client.CityClient,
+              emailClient = client.EmailClient,
+              nameContactClient = client.NameContactClient,
+              nitClient = client.NitClient,
+              phoneClient = client.PhoneClient,
+              stateClient = client.StateClient,
+          })
+          .ToListAsync();
+
+            return Ok(clientDTOs);
+        }
+
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Client>> GetClient(int id)
         {
-          if (_context.Clients == null)
-          {
-              return NotFound();
-          }
+            if (_context.Clients == null)
+            {
+                return NotFound();
+            }
             var client = await _context.Clients.FindAsync(id);
 
             if (client == null)
@@ -70,11 +133,17 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return client;
         }
 
+
+
         [HttpGet()]
         [Route("search")]
         public async Task<ActionResult<ClientsDTO>> GetSearchClients(string search)
         {
-            Client client= SearchClient(search);
+            Client client = SearchClient(search);
+            if (!client.IsActiveClient)
+            {
+                return NotFound();
+            }
             var clientDTO = new ClientsDTO
             {
                 idClient = client.IdClient,
@@ -87,17 +156,22 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 phoneClient = client.PhoneClient,
                 stateClient = client.StateClient,
             };
-            return clientDTO;
+            return Ok(clientDTO);
         }
-            private Client SearchClient (string name)
+
+
+
+        private Client SearchClient(string name)
         {
-            var client = _context.Clients.FirstOrDefault(i=> i.NameClient == name);
+            var client = _context.Clients.FirstOrDefault(i => i.NameClient == name);
             if (client == null)
             {
-                client = _context.Clients.FirstOrDefault(c=> c.NitClient == name);
+                client = _context.Clients.FirstOrDefault(c => c.NitClient == name);
             }
             return client;
         }
+
+
 
         [HttpPut("{nit}")]
         public async Task<IActionResult> PutClient(string nit, ClientsDTO clientDTO)
@@ -107,15 +181,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 return BadRequest();
             }
 
-            var client = _context.Clients.FirstOrDefault(i=> i.NitClient== nit);
-            if(client== null || !client.IsActiveClient)
+            var client = _context.Clients.FirstOrDefault(i => i.NitClient == nit);
+            if (client == null || !client.IsActiveClient)
             {
                 return Unauthorized();
             }
             client.NitClient = clientDTO.nitClient;
-            client.NameClient= clientDTO.nameClient;
-            client.EmailClient= clientDTO.emailClient;
-            client.PhoneClient= clientDTO.phoneClient;
+            client.NameClient = clientDTO.nameClient;
+            client.EmailClient = clientDTO.emailClient;
+            client.PhoneClient = clientDTO.phoneClient;
             client.StateClient = clientDTO.stateClient;
             client.AddressClient = clientDTO.addressClient;
             client.CityClient = clientDTO.cityClient;
@@ -142,16 +216,17 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return NoContent();
         }
 
-    
+
+
         [HttpPost]
         public async Task<ActionResult<Client>> PostClient(ClientsDTO clientDTO)
         {
-          if (_context.Clients == null || clientDTO== null)
-          {
-              return Problem("Entity set 'DiazNaturalsContext.Clients'  is null.");
-          }
+            if (_context.Clients == null || clientDTO == null)
+            {
+                return Problem("Entity set 'DiazNaturalsContext.Clients'  is null.");
+            }
 
-            string password= GenerateRandomCode();
+            string password = GenerateRandomCode();
 
             HashedFormat hash = HashEncryption.Hash(password);
 
@@ -168,10 +243,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             await _context.SaveChangesAsync();
 
-          
-
             int id = credential.IdCredential;
-
 
             var client = new Client
             {
@@ -196,11 +268,12 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 _context.Clients.Add(client);
                 await _context.SaveChangesAsync();
 
-            }catch
+            }
+            catch
             {
                 return BadRequest();
             }
-            
+
             try
             {
                 EmailService emailService = new EmailService();
@@ -211,9 +284,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return BadRequest();
             }
-
-            
         }
+
+
 
         private string GenerateRandomCode(int length = 10)
         {
@@ -224,9 +297,43 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 result[i] = AllowedChars[_random.Next(0, AllowedChars.Length)];
             }
-             string randomCode = new string(result);
+            string randomCode = new string(result);
             return randomCode;
         }
+
+
+
+        [HttpPatch]
+        [Route("EditState")]
+        public async Task<ActionResult> PatchClient(ClientDeleteDTO clientDTO)
+        {
+            var client = _context.Clients.FirstOrDefault(i => i.NitClient == clientDTO.nitClient);
+
+            if (clientDTO == null || client == null)
+            {
+                return NotFound();
+            }
+
+            client.IsActiveClient = clientDTO.isActive;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ClientExists(client.IdClient))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return NoContent();
+        }
+
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteClient(int id)
@@ -246,6 +353,8 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             return NoContent();
         }
+
+
 
         private bool ClientExists(int id)
         {

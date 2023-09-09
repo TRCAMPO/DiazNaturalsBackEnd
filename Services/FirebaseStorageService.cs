@@ -18,8 +18,8 @@ namespace BACK_END_DIAZNATURALS.Services
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-                string bucketName = "diaznaturals-e056b.appspot.com"; 
-                string filePath = $"Productos/{fileName}"; 
+                string bucketName = "diaznaturals-e056b.appspot.com";
+                string filePath = $"Productos/{fileName}";
                 await _storageClient.UploadObjectAsync(bucketName, filePath, null, stream);
                 string url = $"https://storage.googleapis.com/{bucketName}/{filePath}";
                 return url;
@@ -27,8 +27,8 @@ namespace BACK_END_DIAZNATURALS.Services
         }
         public async Task<Stream> GetImageAsync(string fileName)
         {
-            string bucketName = "diaznaturals-e056b.appspot.com"; 
-            string filePath = $"Productos/{fileName}"; 
+            string bucketName = "diaznaturals-e056b.appspot.com";
+            string filePath = $"Productos/{fileName}";
 
             try
             {

@@ -1,7 +1,5 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Mail;
-using System.Net;
 
 namespace BACK_END_DIAZNATURALS.Services;
 [ApiController]

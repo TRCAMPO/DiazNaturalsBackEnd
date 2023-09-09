@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace BACK_END_DIAZNATURALS.Model;
 
@@ -39,7 +37,7 @@ public partial class DiazNaturalsContext : DbContext
 
     public virtual DbSet<Supplier> Suppliers { get; set; }
 
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Administrator>(entity =>

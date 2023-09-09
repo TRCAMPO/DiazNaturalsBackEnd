@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Firebase.Auth;
-using BACK_END_DIAZNATURALS.DTO;
+﻿using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Encrypt;
 using BACK_END_DIAZNATURALS.Model;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -27,21 +21,21 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Administrator>>> GetAdministrators()
         {
-          if (_context.Administrators == null)
-          {
-              return NotFound();
-          }
+            if (_context.Administrators == null)
+            {
+                return NotFound();
+            }
             return await _context.Administrators.ToListAsync();
         }
 
-    
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Administrator>> GetAdministrator(int id)
         {
-          if (_context.Administrators == null)
-          {
-              return NotFound();
-          }
+            if (_context.Administrators == null)
+            {
+                return NotFound();
+            }
             var administrator = await _context.Administrators.FindAsync(id);
 
             if (administrator == null)
@@ -82,14 +76,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return NoContent();
         }
 
-     
+
         [HttpPost]
         public async Task<ActionResult<Administrator>> PostAdministrator(AdministratorDTO administrator)
         {
-          if (_context.Administrators == null)
-          {
-              return Problem("Entity set 'DiazNaturalsContext.Administrators'  is null.");
-          }
+            if (_context.Administrators == null)
+            {
+                return Problem("Entity set 'DiazNaturalsContext.Administrators'  is null.");
+            }
 
             HashedFormat hash = HashEncryption.Hash(administrator.PasswordAdministrator);
 
@@ -106,14 +100,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             var auxAdministrator = new Administrator()
             {
-               NameAdministrator = administrator.NameAdministrator,
-               EmailAdministrator = administrator.EmailAdministrator,
-               IdCredential = id,
+                NameAdministrator = administrator.NameAdministrator,
+                EmailAdministrator = administrator.EmailAdministrator,
+                IdCredential = id,
             };
 
             _context.Administrators.Add(auxAdministrator);
-                      
-             await _context.SaveChangesAsync();
+
+            await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetAdministrator", new { id = auxAdministrator.IdAdministrator }, administrator);
         }

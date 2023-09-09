@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BACK_END_DIAZNATURALS.Model;
+﻿namespace BACK_END_DIAZNATURALS.Model;
 
 public partial class Supplier
 {
