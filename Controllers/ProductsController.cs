@@ -190,10 +190,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return product;
         }
 
-        [HttpPut("{name}")]
-        public async Task<IActionResult> PutProduct(string name, ProductDTO productDTO)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutProduct(int id, ProductDTO productDTO)
         {
-            var product = _context.Products.FirstOrDefault(p => p.NameProduct == name);
+            var product = _context.Products.FirstOrDefault(p => p.IdProduct == id);
             if (product == null || product == null || !product.IsActiveProduct)
             {
                 return BadRequest();
