@@ -70,6 +70,34 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return client;
         }
 
+        [HttpGet()]
+        [Route("search")]
+        public async Task<ActionResult<ClientsDTO>> GetSearchClients(string search)
+        {
+            Client client= SearchClient(search);
+            var clientDTO = new ClientsDTO
+            {
+                idClient = client.IdClient,
+                nameClient = client.NameClient,
+                addressClient = client.AddressClient,
+                cityClient = client.CityClient,
+                emailClient = client.EmailClient,
+                nameContactClient = client.NameContactClient,
+                nitClient = client.NitClient,
+                phoneClient = client.PhoneClient,
+                stateClient = client.StateClient,
+            };
+            return clientDTO;
+        }
+            private Client SearchClient (string name)
+        {
+            var client = _context.Clients.FirstOrDefault(i=> i.NameClient == name);
+            if (client == null)
+            {
+                client = _context.Clients.FirstOrDefault(c=> c.NitClient == name);
+            }
+            return client;
+        }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> PutClient(int id, Client client)

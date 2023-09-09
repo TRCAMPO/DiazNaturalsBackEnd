@@ -115,6 +115,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return supplier;
         }
 
+        
         [HttpPut("{name}")]
         public async Task<IActionResult> PutSupplier(string name, SupplierAddDTO supplierDTO)
         {
