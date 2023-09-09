@@ -163,20 +163,24 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return NotFound();
             }
-            var productDto = new ProductDTO
+            if (p.IsActiveProduct)
             {
-                IdProduct = p.IdProduct,
-                name = p.NameProduct,
-                supplier = _context.Suppliers.FirstOrDefault(s => s.IdSupplier == p.IdSupplier).NameSupplier ?? "Proveedor no encontrado",
-                price = p.PriceProduct,
-                amount = p.QuantityProduct,
-                presentation = _context.Presentations.FirstOrDefault(pr => pr.IdPresentation == p.IdPresentation).NamePresentation,
-                category = _context.Categories.FirstOrDefault(c => c.IdCategory == p.IdCategory).NameCategory,
-                description = p.DescriptionProduct,
-                image = p.ImageProduct
-            };
+                var productDto = new ProductDTO
+                {
+                    IdProduct = p.IdProduct,
+                    name = p.NameProduct,
+                    supplier = _context.Suppliers.FirstOrDefault(s => s.IdSupplier == p.IdSupplier).NameSupplier ?? "Proveedor no encontrado",
+                    price = p.PriceProduct,
+                    amount = p.QuantityProduct,
+                    presentation = _context.Presentations.FirstOrDefault(pr => pr.IdPresentation == p.IdPresentation).NamePresentation,
+                    category = _context.Categories.FirstOrDefault(c => c.IdCategory == p.IdCategory).NameCategory,
+                    description = p.DescriptionProduct,
+                    image = p.ImageProduct
+                };
 
-            return productDto;
+                return productDto;
+            }
+            return NotFound();
         }
 
         private Product SearchProduct(ProductSearchDTO productSearchDTO)
