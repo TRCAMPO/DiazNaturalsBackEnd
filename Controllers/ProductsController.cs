@@ -136,10 +136,59 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 image = p.ImageProduct
              })
             .FirstOrDefaultAsync();
-
+            {
+              
+}
             return productDTO;
         }
+        [HttpGet()]
+        [Route("search")]
+        public async Task<ActionResult<ProductDTO>> GetProduct(string search, string suppliers, string presentation)
+        {
+            if (_context.Products == null || search == null || suppliers == null || presentation==null)
+            {
+                return  Unauthorized();
+            }
 
+            ProductSearchDTO productSearch= new ProductSearchDTO
+            {
+                presentation = presentation,
+                suppliers = suppliers,
+                search = search,
+            };
+
+            Product p = SearchProduct(productSearch);
+            if(p== null)
+            {
+                return NotFound();
+            }
+            var productDto = new ProductDTO
+            {
+                IdProduct = p.IdProduct,
+                name = p.NameProduct,
+                supplier = _context.Suppliers.FirstOrDefault(s => s.IdSupplier == p.IdSupplier).NameSupplier ?? "Proveedor no encontrado",
+                price = p.PriceProduct,
+                amount = p.QuantityProduct,
+                presentation = _context.Presentations.FirstOrDefault(pr => pr.IdPresentation == p.IdPresentation).NamePresentation,
+                category = _context.Categories.FirstOrDefault(c => c.IdCategory == p.IdCategory).NameCategory,
+                description = p.DescriptionProduct,
+                image = p.ImageProduct
+            };
+
+            return productDto;
+        }
+
+        private Product SearchProduct(ProductSearchDTO productSearchDTO)
+        {
+            var supplier = _context.Suppliers.FirstOrDefault(p => p.NameSupplier == productSearchDTO.suppliers);
+            var presentation = _context.Presentations.FirstOrDefault(p => p.NamePresentation == productSearchDTO.presentation);
+            var product = _context.Products
+             .FirstOrDefault(p => p.NameProduct == productSearchDTO.search &&
+                                  p.IdSupplier == supplier.IdSupplier &&
+                                  p.IdPresentation == presentation.IdPresentation);
+
+            return product;
+        }
 
         [HttpPut("{name}")]
         public async Task<IActionResult> PutProduct(string name, ProductDTO productDTO)
@@ -218,7 +267,37 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return Ok();
         }
 
-      
+        [HttpPatch]
+        [Route("EditState")]
+
+        public async Task<ActionResult> PatchSupplier(ProductDeleteDTO supplierDTO)
+        {
+            var supplier = _context.Products.FirstOrDefault(i => i.NameProduct == supplierDTO.name);
+
+            if (supplierDTO == null || supplier == null)
+            {
+                return NotFound();
+            }
+
+            supplier.IsActiveProduct = supplierDTO.isActive;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProductExists(supplier.IdSupplier))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return NoContent();
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
