@@ -99,13 +99,27 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return client;
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutClient(int id, Client client)
+        [HttpPut("{nit}")]
+        public async Task<IActionResult> PutClient(string nit, ClientsDTO clientDTO)
         {
-            if (id != client.IdClient)
+            if (clientDTO == null)
             {
                 return BadRequest();
             }
+
+            var client = _context.Clients.FirstOrDefault(i=> i.NitClient== nit);
+            if(client== null || !client.IsActiveClient)
+            {
+                return Unauthorized();
+            }
+            client.NitClient = clientDTO.nitClient;
+            client.NameClient= clientDTO.nameClient;
+            client.EmailClient= clientDTO.emailClient;
+            client.PhoneClient= clientDTO.phoneClient;
+            client.StateClient = clientDTO.stateClient;
+            client.AddressClient = clientDTO.addressClient;
+            client.CityClient = clientDTO.cityClient;
+            client.NameContactClient = clientDTO.nameContactClient;
 
             _context.Entry(client).State = EntityState.Modified;
 
@@ -115,7 +129,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ClientExists(id))
+                if (!ClientExists(client.IdClient))
                 {
                     return NotFound();
                 }
