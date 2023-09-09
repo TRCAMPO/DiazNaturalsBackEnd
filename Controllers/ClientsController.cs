@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
+using BACK_END_DIAZNATURALS.DTO;
+using BACK_END_DIAZNATURALS.Encrypt;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -14,24 +16,43 @@ namespace BACK_END_DIAZNATURALS.Controllers
     public class ClientsController : ControllerBase
     {
         private readonly DiazNaturalsContext _context;
+        private readonly Random _random = new Random();
 
         public ClientsController(DiazNaturalsContext context)
         {
             _context = context;
         }
 
-        // GET: api/Clients
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Client>>> GetClients()
+        public async Task<ActionResult<IEnumerable<ClientsDTO>>> GetClients()
         {
           if (_context.Clients == null)
           {
               return NotFound();
           }
-            return await _context.Clients.ToListAsync();
+
+            var clientDTOs = await _context.Clients
+          .Select(client => new ClientsDTO
+          {
+             idClient= client.IdClient,
+             nameClient= client.NameClient,
+             addressClient= client.AddressClient,
+             cityClient= client.CityClient,
+             emailClient = client.EmailClient,
+             nameContactClient= client.NameContactClient,
+             nitClient= client.NitClient,
+             phoneClient= client.PhoneClient,
+             stateClient = client.StateClient,
+
+          })
+          .ToListAsync();
+
+            return clientDTOs;
+
+            
         }
 
-        // GET: api/Clients/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Client>> GetClient(int id)
         {
@@ -49,8 +70,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return client;
         }
 
-        // PUT: api/Clients/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutClient(int id, Client client)
         {
@@ -80,22 +100,92 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return NoContent();
         }
 
-        // POST: api/Clients
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    
         [HttpPost]
-        public async Task<ActionResult<Client>> PostClient(Client client)
+        public async Task<ActionResult<Client>> PostClient(ClientsDTO clientDTO)
         {
-          if (_context.Clients == null)
+          if (_context.Clients == null || clientDTO== null)
           {
               return Problem("Entity set 'DiazNaturalsContext.Clients'  is null.");
           }
-            _context.Clients.Add(client);
+
+            string password= GenerateRandomCode();
+
+            HashedFormat hash = HashEncryption.Hash(password);
+
+            var credential = new Credential()
+            {
+                PasswordCredential = hash.Password,
+                SaltCredential = hash.HashAlgorithm
+            };
+            if (credential == null)
+            {
+                return NotFound();
+            }
+            _context.Credentials.Add(credential);
+
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetClient", new { id = client.IdClient }, client);
+          
+
+            int id = credential.IdCredential;
+
+
+            var client = new Client
+            {
+                IdCredential = id,
+                NitClient = clientDTO.nitClient,
+                NameClient = clientDTO.nameClient,
+                EmailClient = clientDTO.emailClient,
+                IsActiveClient = true,
+                AddressClient = clientDTO.addressClient,
+                PhoneClient = clientDTO.phoneClient,
+                CityClient = clientDTO.cityClient,
+                StateClient = clientDTO.stateClient,
+                NameContactClient = clientDTO.nameContactClient,
+
+            };
+            if (client == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                _context.Clients.Add(client);
+                await _context.SaveChangesAsync();
+
+            }catch
+            {
+                return BadRequest();
+            }
+            
+            try
+            {
+                EmailService emailService = new EmailService();
+                await emailService.SendEmail(clientDTO.emailClient, "Crendecial de acceso a la pagina DiazNaturals", "Su constraseña predeterminada es: " + password + "\nPor favor actualizar la contraseña lo mas pronto posible");
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
+
+            
         }
 
-        // DELETE: api/Clients/5
+        private string GenerateRandomCode(int length = 10)
+        {
+            const string AllowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+            char[] result = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = AllowedChars[_random.Next(0, AllowedChars.Length)];
+            }
+             string randomCode = new string(result);
+            return randomCode;
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteClient(int id)
         {
