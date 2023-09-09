@@ -5,7 +5,7 @@
         public int idClient { get; set; }
 
         public string nitClient { get; set; } = null!;
-    
+
         public string nameClient { get; set; } = null!;
 
         public string emailClient { get; set; } = null!;

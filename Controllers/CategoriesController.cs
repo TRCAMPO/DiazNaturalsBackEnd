@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using BACK_END_DIAZNATURALS.DTO;
+using BACK_END_DIAZNATURALS.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BACK_END_DIAZNATURALS.Model;
-using BACK_END_DIAZNATURALS.DTO;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -21,14 +16,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
             _context = context;
         }
 
-     
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
         {
-          if (_context.Categories == null)
-          {
-              return NotFound();
-          }
+            if (_context.Categories == null)
+            {
+                return NotFound();
+            }
             var categoryDto = await _context.Categories
             .Select(c => new CategoryDTO
             {
@@ -40,14 +35,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return Ok(categoryDto);
         }
 
-      
+
         [HttpGet("{id}")]
         public async Task<ActionResult<CategoryDTO>> GetCategory(int id)
         {
-          if (_context.Categories == null)
-          {
-              return NotFound();
-          }
+            if (_context.Categories == null)
+            {
+                return NotFound();
+            }
             var category = await _context.Categories.FindAsync(id);
 
             if (category == null)
@@ -96,10 +91,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [HttpPost]
         public async Task<ActionResult<Category>> PostCategory(CategoriesAddDTO categoryDTO)
         {
-          if (_context.Categories == null)
-          {
-              return Problem("Entity set 'DiazNaturalsContext.Categories'  is null.");
-          }
+            if (_context.Categories == null)
+            {
+                return Problem("Entity set 'DiazNaturalsContext.Categories'  is null.");
+            }
             if (categoryDTO == null)
             {
                 return NoContent();
