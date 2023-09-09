@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class BlobController : ControllerBase
     {
         private readonly FirebaseStorageService _firebaseStorageService;

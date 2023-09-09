@@ -23,7 +23,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
-       // [Route("all")]
+        [Route("all")]
         public async Task<ActionResult<IEnumerable<SupplierDTO>>> GetAllSuppliers()
         {
           if (_context.Suppliers == null)

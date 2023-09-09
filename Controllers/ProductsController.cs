@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
+using System.ComponentModel.DataAnnotations;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -22,7 +23,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
         [HttpGet]
-    //    [Route("all")]
+        [Route("all")]
         public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetAllProducts()
         {
             if (_context.Products == null)
@@ -263,30 +264,40 @@ namespace BACK_END_DIAZNATURALS.Controllers
         };
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
-
+            if (product.QuantityProduct > 0)
+            {
+                var entry = new Entry()
+                {
+                    DateEntry = DateTime.Now,
+                    IdProduct = product.IdProduct,
+                    QuantityProductEntry = product.QuantityProduct,
+                };
+               
+                _context.Entries.Add(entry);
+                await _context.SaveChangesAsync();
+            }
             return Ok();
         }
 
         [HttpPatch]
         [Route("EditState")]
-
-        public async Task<ActionResult> PatchSupplier(ProductDeleteDTO supplierDTO)
+        public async Task<ActionResult> Patch([Required] int id, ProductDeleteDTO productDTO)
         {
-            var supplier = _context.Products.FirstOrDefault(i => i.NameProduct == supplierDTO.name);
+            var product = _context.Products.FirstOrDefault(i => i.IdProduct == productDTO.idProduct);
 
-            if (supplierDTO == null || supplier == null)
+            if (productDTO == null || product == null)
             {
                 return NotFound();
             }
 
-            supplier.IsActiveProduct = supplierDTO.isActive;
+            product.IsActiveProduct = productDTO.isActive;
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProductExists(supplier.IdSupplier))
+                if (!ProductExists(product.IdSupplier))
                 {
                     return NotFound();
                 }
