@@ -143,7 +143,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
 
-        [HttpPut("EditarContraseña")]
+        [HttpPut("EditarContrasena")]
         public async Task<IActionResult> PutAdminsitratorPassword(InputCredentialDTO newCredential)
         {
             Administrator administrator = _context.Administrators.FirstOrDefault(a => a.EmailAdministrator == newCredential.email);
