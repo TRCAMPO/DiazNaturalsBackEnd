@@ -52,18 +52,20 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<ActionResult<EntryGetDTO>> GetEntry(int id)
         {
             if (_context.Entries == null) return NotFound();
-            var entry = await _context.Entries.Select(p => new EntryGetDTO
-            {
-                IdEntry = p.IdEntry,
-                DateEntry = p.DateEntry,
-                QuantityProductEntry = p.QuantityProductEntry,
-                supplier = p.IdProductNavigation.IdSupplierNavigation.NameSupplier,
-                presentation = p.IdProductNavigation.IdPresentationNavigation.NamePresentation,
-                name = p.IdProductNavigation.NameProduct,
-            }).FirstOrDefaultAsync();
-            
+            var entry = await _context.Entries
+                .Where(p => p.IdEntry == id)
+                .Select(p => new EntryGetDTO
+                {
+                    IdEntry = p.IdEntry,
+                    DateEntry = p.DateEntry,
+                    QuantityProductEntry = p.QuantityProductEntry,
+                    supplier = p.IdProductNavigation.IdSupplierNavigation.NameSupplier,
+                    presentation = p.IdProductNavigation.IdPresentationNavigation.NamePresentation,
+                    name = p.IdProductNavigation.NameProduct,
+                }).FirstOrDefaultAsync();
+
             if (entry == null) return NotFound();
-          return entry;
+            return entry;
         }
 
 
