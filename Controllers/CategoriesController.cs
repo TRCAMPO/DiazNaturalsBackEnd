@@ -11,19 +11,19 @@ namespace BACK_END_DIAZNATURALS.Controllers
     {
         private readonly DiazNaturalsContext _context;
 
+
+
         public CategoriesController(DiazNaturalsContext context)
         {
             _context = context;
         }
 
 
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
         {
-            if (_context.Categories == null)
-            {
-                return NotFound();
-            }
+            if (_context.Categories == null) return NotFound();
             var categoryDto = await _context.Categories
             .Select(c => new CategoryDTO
             {
@@ -31,24 +31,19 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 NameCategory = c.NameCategory
             })
             .ToListAsync();
-
             return Ok(categoryDto);
         }
+
 
 
         [HttpGet("{id}")]
         public async Task<ActionResult<CategoryDTO>> GetCategory(int id)
         {
-            if (_context.Categories == null)
-            {
-                return NotFound();
-            }
+            if (_context.Categories == null) return NotFound();
             var category = await _context.Categories.FindAsync(id);
 
-            if (category == null)
-            {
-                return NotFound();
-            }
+            if (category == null) return NotFound();
+
             CategoryDTO categoryDTO = new CategoryDTO
             {
                 IdCategory = category.IdCategory,
@@ -58,13 +53,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
 
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategory(int id, Category category)
         {
-            if (id != category.IdCategory)
-            {
-                return BadRequest();
-            }
+            if (id != category.IdCategory) return BadRequest();
 
             _context.Entry(category).State = EntityState.Modified;
 
@@ -78,14 +71,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                else { throw; }
             }
-
             return NoContent();
         }
+
 
 
         [HttpPost]
@@ -95,38 +85,31 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return Problem("Entity set 'DiazNaturalsContext.Categories'  is null.");
             }
-            if (categoryDTO == null)
-            {
-                return NoContent();
-            }
+            if (categoryDTO == null) return NoContent();
+
             var category = new Category
             {
                 NameCategory = categoryDTO.NameCategory,
             };
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
-
             return CreatedAtAction("GetCategory", new { id = category.IdCategory }, category);
         }
+
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            if (_context.Categories == null)
-            {
-                return NotFound();
-            }
+            if (_context.Categories == null) return NotFound();
             var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
+            if (category == null) return NotFound();
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
+
+
 
         private bool CategoryExists(int id)
         {
