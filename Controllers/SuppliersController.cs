@@ -37,7 +37,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                   PhoneSupplier = c.PhoneSupplier
               })
               .ToListAsync();
-            return supplierDTOs;
+            return Ok(supplierDTOs);
         }
 
 
@@ -60,7 +60,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                   PhoneSupplier = c.PhoneSupplier
               })
               .ToListAsync();
-            return supplierDTOs;
+            return Ok(supplierDTOs);
         }
 
 
@@ -83,7 +83,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                   PhoneSupplier = c.PhoneSupplier
               })
               .ToListAsync();
-            return supplierDTOs;
+            return Ok(supplierDTOs);
         }
 
 
@@ -104,7 +104,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 PhoneSupplier = supplier.PhoneSupplier,
                 NitSupplier = supplier.NitSupplier,
             };
-            return supplier;
+            return Ok(supplier);
         }
 
 
