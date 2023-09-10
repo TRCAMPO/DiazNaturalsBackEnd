@@ -12,10 +12,13 @@ namespace BACK_END_DIAZNATURALS.Controllers
     {
         private readonly DiazNaturalsContext _context;
 
+
+
         public AdministratorsController(DiazNaturalsContext context)
         {
             _context = context;
         }
+
 
 
         [HttpGet]
@@ -27,6 +30,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
             return await _context.Administrators.ToListAsync();
         }
+
 
 
         [HttpGet("{id}")]
@@ -42,9 +46,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return NotFound();
             }
-
             return administrator;
         }
+
 
 
         [HttpPut("{id}")]
@@ -54,7 +58,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return BadRequest();
             }
-
             _context.Entry(administrator).State = EntityState.Modified;
 
             try
@@ -67,14 +70,12 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                else { throw; }
             }
 
             return NoContent();
         }
+
 
 
         [HttpPost]
@@ -86,31 +87,27 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
 
             HashedFormat hash = HashEncryption.Hash(administrator.PasswordAdministrator);
-
             var credential = new Credential()
             {
                 PasswordCredential = hash.Password,
                 SaltCredential = hash.HashAlgorithm
             };
+
             _context.Credentials.Add(credential);
-
             await _context.SaveChangesAsync();
-
             int id = credential.IdCredential;
-
             var auxAdministrator = new Administrator()
             {
                 NameAdministrator = administrator.NameAdministrator,
                 EmailAdministrator = administrator.EmailAdministrator,
                 IdCredential = id,
             };
-
             _context.Administrators.Add(auxAdministrator);
-
             await _context.SaveChangesAsync();
-
             return CreatedAtAction("GetAdministrator", new { id = auxAdministrator.IdAdministrator }, administrator);
         }
+
+
 
         private bool AdministratorExists(int id)
         {

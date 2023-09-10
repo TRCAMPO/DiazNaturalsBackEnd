@@ -2,6 +2,7 @@
 using BACK_END_DIAZNATURALS.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -11,20 +12,20 @@ namespace BACK_END_DIAZNATURALS.Controllers
     {
         private readonly DiazNaturalsContext _context;
 
+
+
         public SuppliersController(DiazNaturalsContext context)
         {
             _context = context;
         }
 
 
+
+
         [HttpGet]
         [Route("all")]
         public async Task<ActionResult<IEnumerable<SupplierDTO>>> GetAllSuppliers()
         {
-            if (_context.Suppliers == null)
-            {
-                return NotFound();
-            }
             var supplierDTOs = await _context.Suppliers
               .Select(c => new SupplierDTO
               {
@@ -39,14 +40,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return supplierDTOs;
         }
 
+
+
+
         [HttpGet]
         [Route("active")]
         public async Task<ActionResult<IEnumerable<SupplierDTO>>> GetActiveSuppliers()
         {
-            if (_context.Suppliers == null)
-            {
-                return NotFound();
-            }
+            if (_context.Suppliers == null) return NotFound();
             var supplierDTOs = await _context.Suppliers
                 .Where(c => c.IsActiveSupplier == true)
               .Select(c => new SupplierDTO
@@ -62,14 +63,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return supplierDTOs;
         }
 
+
+
+
         [HttpGet]
         [Route("inactive")]
         public async Task<ActionResult<IEnumerable<SupplierDTO>>> GetInactiveSuppliers()
         {
-            if (_context.Suppliers == null)
-            {
-                return NotFound();
-            }
+            if (_context.Suppliers == null) return NotFound();
             var supplierDTOs = await _context.Suppliers
                 .Where(c => c.IsActiveSupplier == false)
               .Select(c => new SupplierDTO
@@ -85,19 +86,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return supplierDTOs;
         }
 
+
+
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Supplier>> GetSupplier(int id)
         {
-            if (_context.Suppliers == null)
-            {
-                return NotFound();
-            }
+            if (_context.Suppliers == null) return NotFound();
             var supplier = await _context.Suppliers.FindAsync(id);
-
-            if (supplier == null || !supplier.IsActiveSupplier)
-            {
-                return NotFound();
-            }
+            if (supplier == null || !supplier.IsActiveSupplier) return NotFound();
             SupplierDTO supplierDTO = new SupplierDTO
             {
                 IdSupplier = supplier.IdSupplier,
@@ -111,50 +108,72 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
 
-        [HttpPut("{nitSupplier}")]
-        public async Task<IActionResult> PutSupplier(string name, SupplierAddDTO supplierDTO)
-        {
-            var supplier = _context.Suppliers.FirstOrDefault(c => c.NameSupplier == name);
-            if (supplier == null || !supplier.IsActiveSupplier)
-            {
-                return NotFound(supplier);
-            }
 
+
+        [HttpGet()]
+        [Route("search")]
+        public async Task<ActionResult<SupplierDTO>> GetSearchClients(string search)
+        {
+            Supplier supplier = SearchClient(search);
+            if (supplier==null) return NotFound();
+            if (!supplier.IsActiveSupplier) return NotFound();
+            var supplierDTO = new SupplierDTO
+            {
+                IdSupplier = supplier.IdSupplier,
+                NameSupplier = supplier.NameSupplier,
+                AddressSupplier = supplier.AddressSupplier,
+                EmailSupplier = supplier.EmailSupplier,
+                PhoneSupplier = supplier.PhoneSupplier,
+                NitSupplier = supplier.NitSupplier,
+            };
+            return Ok(supplierDTO);
+        }
+
+
+
+        private Supplier SearchClient(string name)
+        {
+            var supplier = _context.Suppliers.FirstOrDefault(i => i.NameSupplier == name);
+            if (supplier == null)
+            {
+                supplier = _context.Suppliers.FirstOrDefault(c => c.NitSupplier == name);
+            }
+            return supplier;
+        }
+
+
+
+
+        [HttpPut("{nitSupplier}")]
+        public async Task<IActionResult> PutSupplier([Required] string nitSupplier, SupplierAddDTO supplierDTO)
+        {
+            var supplier = _context.Suppliers.FirstOrDefault(c => c.NitSupplier == nitSupplier);
+            if (supplier == null || !supplier.IsActiveSupplier) return NotFound();
             supplier.NameSupplier = supplierDTO.NameSupplier;
             supplier.AddressSupplier = supplierDTO.AddressSupplier;
             supplier.EmailSupplier = supplierDTO.EmailSupplier;
             supplier.PhoneSupplier = supplierDTO.PhoneSupplier;
             supplier.NitSupplier = supplierDTO.NitSupplier;
-
             _context.Entry(supplier).State = EntityState.Modified;
-
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SupplierExists(supplier.IdSupplier))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!SupplierExists(supplier.IdSupplier)) return NotFound();
+                else { throw; }
             }
-
             return NoContent();
         }
+
+
 
 
         [HttpPost]
         public async Task<ActionResult<Supplier>> PostSupplier(SupplierAddDTO supplierDTO)
         {
-            if (_context.Suppliers == null)
-            {
-                return Problem("Entity set 'DiazNaturalsContext.Suppliers'  is null.");
-            }
+            if (_context.Suppliers == null) return Problem("Entity set 'DiazNaturalsContext.Suppliers'  is null.");
             var supplier = new Supplier
             {
                 NitSupplier = supplierDTO.NitSupplier,
@@ -165,25 +184,21 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 IsActiveSupplier = true,
 
             };
-
             _context.Suppliers.Add(supplier);
             await _context.SaveChangesAsync();
-
             return CreatedAtAction("GetSupplier", new { id = supplier.IdSupplier }, supplier);
         }
 
+
+
+
         [HttpPatch]
         [Route("EditState")]
-
         public async Task<ActionResult> PatchSupplier(SupplierDeleteDTO supplierDTO)
         {
             var supplier = _context.Suppliers.FirstOrDefault(i => i.NitSupplier == supplierDTO.nitSupplier);
 
-            if (supplierDTO == null || supplier == null)
-            {
-                return NotFound();
-            }
-
+            if (supplierDTO == null || supplier == null) return NotFound();
             supplier.IsActiveSupplier = supplierDTO.isActive;
             try
             {
@@ -191,37 +206,28 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SupplierExists(supplier.IdSupplier))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!SupplierExists(supplier.IdSupplier)) return NotFound();
+                else { throw; }
             }
             return NoContent();
         }
+
+
 
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSupplier(int id)
         {
-            if (_context.Suppliers == null)
-            {
-                return NotFound();
-            }
+            if (_context.Suppliers == null) return NotFound();
             var supplier = await _context.Suppliers.FindAsync(id);
-            if (supplier == null)
-            {
-                return NotFound();
-            }
-
+            if (supplier == null) return NotFound();
             _context.Suppliers.Remove(supplier);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
+
+
+
 
         private bool SupplierExists(int id)
         {

@@ -3,6 +3,7 @@
     public class ClientDeleteDTO
     {
         public string nitClient { get; set; }
+
         public bool isActive { get; set; }
     }
 }

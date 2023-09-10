@@ -16,38 +16,38 @@ namespace BACK_END_DIAZNATURALS.Controllers
     {
         private readonly DiazNaturalsContext _context;
 
+
+
         public PresentationsController(DiazNaturalsContext context)
         {
             _context = context;
         }
 
 
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PresentationDTO>>> GetPresentations()
         {
-          if (_context.Presentations == null)
-          {
-              return NotFound();
-          }
+            if (_context.Presentations == null) return NotFound();
             var presentationDTOs = await _context.Presentations
            .Select(c => new PresentationDTO
            {
-              IdPresentation=c.IdPresentation,
-              NamePresentation=c.NamePresentation,
+               IdPresentation = c.IdPresentation,
+               NamePresentation = c.NamePresentation,
            })
            .ToListAsync();
-
             return Ok(presentationDTOs);
         }
+
 
 
         [HttpGet("{id}")]
         public async Task<ActionResult<PresentationDTO>> GetPresentation(int id)
         {
-          if (_context.Presentations == null)
-          {
-              return NotFound();
-          }
+            if (_context.Presentations == null)
+            {
+                return NotFound();
+            }
             var presentation = await _context.Presentations.FindAsync(id);
 
             if (presentation == null)
@@ -63,16 +63,12 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
 
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPresentation(int id, Presentation presentation)
         {
-            if (id != presentation.IdPresentation)
-            {
-                return BadRequest();
-            }
-
+            if (id != presentation.IdPresentation) return BadRequest();
             _context.Entry(presentation).State = EntityState.Modified;
-
             try
             {
                 await _context.SaveChangesAsync();
@@ -83,57 +79,41 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                else { throw; }
             }
-
             return NoContent();
         }
+
 
 
         [HttpPost]
         public async Task<ActionResult<Presentation>> PostPresentation(PresentationAddDTO presentationDTO)
         {
-          if (_context.Presentations == null)
-          {
-              return Problem("Entity set 'DiazNaturalsContext.Presentations'  is null.");
-          }
-          if (presentationDTO == null)
-            {
-                return NoContent();
-            }
+            if (_context.Presentations == null) return Problem("Entity set 'DiazNaturalsContext.Presentations'  is null.");
+            if (presentationDTO == null) return NoContent();
             var presentation = new Presentation
             {
                 NamePresentation = presentationDTO.NamePresentation,
             };
-
             _context.Presentations.Add(presentation);
             await _context.SaveChangesAsync();
-
             return CreatedAtAction("GetPresentation", new { id = presentation.IdPresentation }, presentation);
         }
+
 
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePresentation(int id)
         {
-            if (_context.Presentations == null)
-            {
-                return NotFound();
-            }
+            if (_context.Presentations == null) return NotFound();
             var presentation = await _context.Presentations.FindAsync(id);
-            if (presentation == null)
-            {
-                return NotFound();
-            }
-
+            if (presentation == null) return NotFound();
             _context.Presentations.Remove(presentation);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
+
+
 
         private bool PresentationExists(int id)
         {
