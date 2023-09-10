@@ -223,10 +223,13 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<ActionResult<Product>> PostProduct(ProductAddDTO productDTO)
         {
             if (_context.Products == null || productDTO == null) return Problem("Entity set 'DiazNaturalsContext.Products'  is null.");
+            if (productDTO.supplier == null || productDTO.presentation == null || productDTO.name == null || productDTO.category==null) return NotFound("Existen parametros nulos en la peticion");
+
             var suplier = _context.Suppliers.FirstOrDefault(i => i.NameSupplier == productDTO.supplier);
             var presentation = _context.Presentations.FirstOrDefault(i => i.NamePresentation == productDTO.presentation);
             var category = _context.Categories.FirstOrDefault(i => i.NameCategory == productDTO.category);
             if (suplier == null || presentation == null || category == null) return NotFound();
+            if(ProductsExists(suplier.IdSupplier, presentation.IdPresentation, productDTO.name))return Conflict("Ya existe un producto con el nombre \""+ productDTO.name + "\" el proveedor \"" + productDTO.supplier+ "\" y la presentacion \"" + productDTO.presentation+ "\".");
             var product = new Product
             {
                 IdSupplier = suplier.IdSupplier,
@@ -296,6 +299,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
         private bool ProductExists(int id)
         {
             return (_context.Products?.Any(e => e.IdProduct == id)).GetValueOrDefault();
+        }
+        private bool ProductsExists(int suplier, int presentattion, string name)
+        {
+            bool producExist= _context.Products?.Any(e =>
+            e.NameProduct == name &&
+            e.IdSupplier == suplier &&
+            e.IdPresentation == presentattion
+            )??false;
+            return producExist;
         }
     }
 }
