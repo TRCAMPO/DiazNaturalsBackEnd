@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
+using BACK_END_DIAZNATURALS.DTO;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -25,21 +26,44 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Entry>>> GetEntries()
+        public async Task<ActionResult<IEnumerable<EntryGetDTO>>> GetEntries()
         {
             if (_context.Entries == null) return NotFound();
-            return await _context.Entries.ToListAsync();
+           
+            var entry= await _context.Entries
+                .Include(p=> p.IdProductNavigation)
+                .Select(o=> new EntryGetDTO
+                {
+                    IdEntry = o.IdEntry,
+                    name = o.IdProductNavigation.NameProduct,
+                    supplier = o.IdProductNavigation.IdSupplierNavigation.NameSupplier,
+                    presentation=o.IdProductNavigation.IdPresentationNavigation.NamePresentation,
+                    DateEntry = o.DateEntry,
+                    QuantityProductEntry=o.QuantityProductEntry,
+                }).                
+                ToListAsync();
+            if (entry == null) return NotFound();   
+             return Ok(entry);
         }
 
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Entry>> GetEntry(int id)
+        public async Task<ActionResult<EntryGetDTO>> GetEntry(int id)
         {
             if (_context.Entries == null) return NotFound();
-            var entry = await _context.Entries.FindAsync(id);
+            var entry = await _context.Entries.Select(p => new EntryGetDTO
+            {
+                IdEntry = p.IdEntry,
+                DateEntry = p.DateEntry,
+                QuantityProductEntry = p.QuantityProductEntry,
+                supplier = p.IdProductNavigation.IdSupplierNavigation.NameSupplier,
+                presentation = p.IdProductNavigation.IdPresentationNavigation.NamePresentation,
+                name = p.IdProductNavigation.NameProduct,
+            }).FirstOrDefaultAsync();
+            
             if (entry == null) return NotFound();
-            return entry;
+          return entry;
         }
 
 

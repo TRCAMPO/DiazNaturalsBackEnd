@@ -65,9 +65,12 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPresentation(int id, Presentation presentation)
+        public async Task<IActionResult> PutPresentation(int id, PresentationDTO presentationDTO)
         {
-            if (id != presentation.IdPresentation) return BadRequest();
+            if (id != presentationDTO.IdPresentation) return BadRequest();
+            var presentation = _context.Presentations.Find(id);
+            if (presentation == null)return NotFound();
+            presentation.NamePresentation = presentationDTO.NamePresentation;
             _context.Entry(presentation).State = EntityState.Modified;
             try
             {
@@ -91,6 +94,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Presentations == null) return Problem("Entity set 'DiazNaturalsContext.Presentations'  is null.");
             if (presentationDTO == null) return NoContent();
+            if (PresentationExistsName(presentationDTO.NamePresentation)) return new ConflictObjectResult("Ya existe la presentacion que intenta crear");
             var presentation = new Presentation
             {
                 NamePresentation = presentationDTO.NamePresentation,
@@ -118,6 +122,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         private bool PresentationExists(int id)
         {
             return (_context.Presentations?.Any(e => e.IdPresentation == id)).GetValueOrDefault();
+        }
+
+        private bool PresentationExistsName(string name)
+        {
+            return (_context.Presentations?.Any(e => e.NamePresentation == name)).GetValueOrDefault();
         }
     }
 }
