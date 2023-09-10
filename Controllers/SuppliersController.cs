@@ -174,6 +174,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<ActionResult<Supplier>> PostSupplier(SupplierAddDTO supplierDTO)
         {
             if (_context.Suppliers == null) return Problem("Entity set 'DiazNaturalsContext.Suppliers'  is null.");
+            if (supplierDTO == null) return BadRequest();
+            if(SupplierNameExists(supplierDTO.NameSupplier))return Conflict("El Nombre del proveedor \""+ supplierDTO.NameSupplier+"\" ya existe.");
+            if(SupplierNitExists(supplierDTO.NitSupplier))return Conflict("El Nit del proveedor \"" + supplierDTO.NitSupplier + "\" ya existe.");
             var supplier = new Supplier
             {
                 NitSupplier = supplierDTO.NitSupplier,
@@ -184,8 +187,16 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 IsActiveSupplier = true,
 
             };
-            _context.Suppliers.Add(supplier);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Suppliers.Add(supplier);
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                return BadRequest();
+            }
+
             return CreatedAtAction("GetSupplier", new { id = supplier.IdSupplier }, supplier);
         }
 
@@ -232,6 +243,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
         private bool SupplierExists(int id)
         {
             return (_context.Suppliers?.Any(e => e.IdSupplier == id)).GetValueOrDefault();
+        }
+        private bool SupplierNitExists(string  nit)
+        {
+            return (_context.Suppliers?.Any(e => e.NitSupplier == nit)).GetValueOrDefault();
+        }
+        private bool SupplierNameExists(string name)
+        {
+            return (_context.Suppliers?.Any(e => e.NameSupplier == name)).GetValueOrDefault();
         }
     }
 }
