@@ -113,7 +113,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
 
-        [HttpGet("{id}")]
+        [HttpGet("{nit}")]
         public async Task<ActionResult<Client>> GetClient(int id)
         {
             if (_context.Clients == null)
@@ -220,6 +220,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return Problem("Entity set 'DiazNaturalsContext.Clients'  is null.");
             }
+            if(ClientNameExists(clientDTO.nameClient))return Conflict("El nombre de cliente ya existe");
+            if(ClientNitExists(clientDTO.nitClient)) return Conflict("El Nit de cliente ya existe");
+            if (ClientEmailExists(clientDTO.emailClient)) return Conflict("El email de cliente ya existe");
 
             string password = GenerateRandomCode();
             HashedFormat hash = HashEncryption.Hash(password);
@@ -319,7 +322,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{nit}")]
         public async Task<IActionResult> DeleteClient(int id)
         {
             if (_context.Clients == null)
@@ -342,6 +345,18 @@ namespace BACK_END_DIAZNATURALS.Controllers
         private bool ClientExists(int id)
         {
             return (_context.Clients?.Any(e => e.IdClient == id)).GetValueOrDefault();
+        }
+        private bool ClientNitExists(string nit)
+        {
+            return (_context.Clients?.Any(e => e.NitClient == nit)).GetValueOrDefault();
+        }
+        private bool ClientNameExists(string name)
+        {
+            return (_context.Clients?.Any(e => e.NameClient == name)).GetValueOrDefault();
+        }
+        private bool ClientEmailExists(string email)
+        {
+            return (_context.Clients?.Any(e => e.EmailClient == email)).GetValueOrDefault();
         }
     }
 }
