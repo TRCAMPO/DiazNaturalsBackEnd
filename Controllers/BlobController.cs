@@ -24,7 +24,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (file == null || file.Length == 0)
                 return BadRequest("Archivo no válido");
-
             string fileName = file.FileName;
             string url = await _firebaseStorageService.ImageUploadAsync(file, fileName);
             string[] urlParts = url.Split('/');
