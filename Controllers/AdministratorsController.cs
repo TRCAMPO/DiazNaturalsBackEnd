@@ -22,19 +22,25 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Administrator>>> GetAdministrators()
+        public async Task<ActionResult<IEnumerable<AdministratorGetDTO>>> GetAdministrators()
         {
             if (_context.Administrators == null)
             {
                 return NotFound();
             }
-            return await _context.Administrators.ToListAsync();
+            var administrator = await _context.Administrators.Select(p => new AdministratorGetDTO
+            {
+                IdAdministrator = p.IdAdministrator,
+                NameAdministrator = p.NameAdministrator,
+                EmailAdministrator = p.EmailAdministrator,
+            }).ToListAsync();
+            return Ok(administrator);
         }
 
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Administrator>> GetAdministrator(int id)
+        public async Task<ActionResult<AdministratorGetDTO>> GetAdministrator(int id)
         {
             if (_context.Administrators == null)
             {
@@ -46,18 +52,26 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return NotFound();
             }
-            return administrator;
+            var administratorDTO = new AdministratorGetDTO
+            {
+                EmailAdministrator = administrator.EmailAdministrator,
+                NameAdministrator = administrator.NameAdministrator,
+                IdAdministrator = administrator.IdAdministrator,
+            };
+            return Ok(administrator);
         }
 
 
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAdministrator(int id, Administrator administrator)
+        [HttpPut("{email}")]
+        public async Task<IActionResult> PutAdministrator(string email, AdministratorEditDTO administratorDTO)
         {
-            if (id != administrator.IdAdministrator)
-            {
-                return BadRequest();
-            }
+            if(administratorDTO == null)return NotFound();
+            var administrator= _context.Administrators.FirstOrDefault(i=>i.EmailAdministrator == email);
+            if (administrator == null) return NotFound(administratorDTO);
+            administrator.EmailAdministrator = administratorDTO.EmailAdministrator;
+            administrator.NameAdministrator = administratorDTO.NameAdministrator;
+
             _context.Entry(administrator).State = EntityState.Modified;
 
             try
@@ -66,13 +80,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AdministratorExists(id))
-                {
-                    return NotFound();
-                }
+                if (!AdministratorExists(administrator.IdAdministrator)) return NotFound();
                 else { throw; }
             }
-
             return NoContent();
         }
 
