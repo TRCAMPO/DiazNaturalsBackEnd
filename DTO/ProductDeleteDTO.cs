@@ -3,6 +3,7 @@
     public class ProductDeleteDTO
     {
         public int idProduct { get; set; }
+
         public bool isActive { get; set; }
     }
 }
