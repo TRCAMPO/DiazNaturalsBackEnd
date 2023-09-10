@@ -21,11 +21,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
         private const string CacheKey = "RandomCode";
         private String code;
 
+
+
         public AccesControll(DiazNaturalsContext context, IMemoryCache cache)
         {
             _context = context;
             _cache = cache;
         }
+
 
 
         [HttpPost]
@@ -87,6 +90,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
 
+
         [HttpPost]
         [Route("SendEmail")]
         public async Task<IActionResult> SendEmail([FromBody] EmailDTO email)
@@ -99,30 +103,23 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 var mailAddress = new System.Net.Mail.MailAddress(email.Email);
             }
-            catch
-            {
-                return BadRequest("Email no válido");
-            }
+            catch { return BadRequest("Email no válido"); }
+
             if (_context.Administrators.Any(i => i.EmailAdministrator == email.Email))
             {
                 GenerateRandomCode();
                 try
                 {
-
                     EmailService emailService = new EmailService();
                     await emailService.SendEmail(email.Email, "Recuperación de contraseña DiazNaturals", code);
                     return Ok();
                 }
-                catch
-                {
-                    return BadRequest();
-                }
+                catch { return BadRequest(); }
             }
-            else
-            {
-                return NotFound("Email no encontrado");
-            }
+            else { return NotFound("Email no encontrado"); }
         }
+
+
 
         [HttpPost]
         [Route("ValidarCode")]
@@ -144,8 +141,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return StatusCode(StatusCodes.Status404NotFound, new { token = cachedCode });
         }
 
+
+
         [HttpPut("EditarContraseña")]
-        // [Authorize]
         public async Task<IActionResult> PutAdminsitratorPassword(InputCredentialDTO newCredential)
         {
             Administrator administrator = _context.Administrators.FirstOrDefault(a => a.EmailAdministrator == newCredential.email);
@@ -166,7 +164,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
         private void GenerateRandomCode(int length = 8)
         {
             const string AllowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
             char[] result = new char[length];
             for (int i = 0; i < length; i++)
             {
@@ -175,7 +172,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
             string randomCode = new string(result);
             code = randomCode;
             _cache.Set(CacheKey, randomCode);
-
         }
     }
 }

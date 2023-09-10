@@ -9,10 +9,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
     {
         private readonly FirebaseStorageService _firebaseStorageService;
 
+
+
         public BlobController(FirebaseStorageService firebaseStorageService)
         {
             _firebaseStorageService = firebaseStorageService;
         }
+
+
 
         [HttpPost]
         [Route("load")]
@@ -28,16 +32,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return Ok(new { FileName = imageName });
         }
 
+
+
+
         [HttpGet("{imageName}")]
         public async Task<IActionResult> GetImage(string imageName)
         {
             var imageStream = await _firebaseStorageService.GetImageAsync(imageName);
 
-            if (imageStream == null)
-            {
-                return NotFound();
-            }
-
+            if (imageStream == null) { return NotFound(); }
             return File(imageStream, "image/png");
         }
     }

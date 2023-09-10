@@ -50,7 +50,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
               stateClient = client.StateClient,
           })
           .ToListAsync();
-
             return clientDTOs;
         }
 
@@ -66,7 +65,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
 
             var clientDTOs = await _context.Clients
-                .Where(p=>p.IsActiveClient==true)
+                .Where(p => p.IsActiveClient == true)
           .Select(client => new ClientsDTO
           {
               idClient = client.IdClient,
@@ -80,7 +79,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
               stateClient = client.StateClient,
           })
           .ToListAsync();
-
             return Ok(clientDTOs);
         }
 
@@ -110,7 +108,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
               stateClient = client.StateClient,
           })
           .ToListAsync();
-
             return Ok(clientDTOs);
         }
 
@@ -129,18 +126,17 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return NotFound();
             }
-
             return client;
         }
 
 
 
-        [HttpGet()]
+        [HttpGet]
         [Route("search")]
         public async Task<ActionResult<ClientsDTO>> GetSearchClients(string search)
         {
             Client client = SearchClient(search);
-            if (!client.IsActiveClient)
+            if (client == null||!client.IsActiveClient)
             {
                 return NotFound();
             }
@@ -184,7 +180,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             var client = _context.Clients.FirstOrDefault(i => i.NitClient == nit);
             if (client == null || !client.IsActiveClient)
             {
-                return Unauthorized();
+                return NotFound();
             }
             client.NitClient = clientDTO.nitClient;
             client.NameClient = clientDTO.nameClient;
@@ -212,7 +208,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
 
@@ -227,9 +222,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
 
             string password = GenerateRandomCode();
-
             HashedFormat hash = HashEncryption.Hash(password);
-
             var credential = new Credential()
             {
                 PasswordCredential = hash.Password,
@@ -239,12 +232,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return NotFound();
             }
+
             _context.Credentials.Add(credential);
-
             await _context.SaveChangesAsync();
-
             int id = credential.IdCredential;
-
             var client = new Client
             {
                 IdCredential = id,
@@ -257,7 +248,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 CityClient = clientDTO.cityClient,
                 StateClient = clientDTO.stateClient,
                 NameContactClient = clientDTO.nameContactClient,
-
             };
             if (client == null)
             {
@@ -269,10 +259,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 await _context.SaveChangesAsync();
 
             }
-            catch
-            {
-                return BadRequest();
-            }
+            catch { return BadRequest(); }
 
             try
             {
@@ -280,10 +267,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 await emailService.SendEmail(clientDTO.emailClient, "Crendecial de acceso a la pagina DiazNaturals", "Su constraseña predeterminada es: " + password + "\nPor favor actualizar la contraseña lo mas pronto posible");
                 return Ok();
             }
-            catch
-            {
-                return BadRequest();
-            }
+            catch { return BadRequest(); }
         }
 
 
@@ -350,7 +334,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             _context.Clients.Remove(client);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
 

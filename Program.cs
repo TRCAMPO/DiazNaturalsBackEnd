@@ -7,43 +7,42 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
+
+
 var builder = WebApplication.CreateBuilder(args);
-
-
-
 builder.Services.AddControllers();
-
-
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
-
 builder.Services.AddSqlServer<DiazNaturalsContext>(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+
+
 try
 {
     IConfiguration configuration = new ConfigurationBuilder()
         .SetBasePath(Directory.GetCurrentDirectory())
         .AddJsonFile("appsettings.json")
         .Build();
+
     string apiKey = configuration["Firebase:ApiKey"];
     string authDomain = configuration["Firebase:AuthDomain"];
     string projectId = configuration["Firebase:ProjectId"];
     string storageBucket = configuration["Firebase:StorageBucket"];
-
     var storage = StorageClient.Create();
 }
-catch (Exception ex)
-{
-    // Registra la excepción para depuración
-    Console.WriteLine("Excepción no controlada: " + ex.ToString());
-    // También puedes registrar la excepción en un archivo de registro o en otra ubicación según tus necesidades
-}
+catch (Exception ex) { Console.WriteLine("Excepción no controlada: " + ex.ToString()); }
+
+
+
 builder.Services.AddScoped<FirebaseStorageService>();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.IgnoreNullValues = true;
 });
+
+
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(optionss =>
 {
     optionss.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
@@ -57,6 +56,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes((builder.Configuration["Jwt:Key"])))
     };
 });
+
+
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -87,6 +88,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
+
 builder.Services.AddAuthorization(options =>
 {
     options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
@@ -94,12 +96,15 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
+
 var app = builder.Build();
+
 
 app.UseCors(x => x
             .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
+
 
 
 if (app.Environment.IsDevelopment())
@@ -111,11 +116,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
