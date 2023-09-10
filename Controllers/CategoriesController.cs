@@ -55,22 +55,20 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(int id, Category category)
+        public async Task<IActionResult> PutCategory(int id, CategoryDTO categoryDTO)
         {
-            if (id != category.IdCategory) return BadRequest();
-
+            if (id != categoryDTO.IdCategory) return BadRequest();
+            var category= _context.Categories.FirstOrDefault(i=>i.IdCategory == id);
+            if(category == null) return NotFound(); 
+            categoryDTO.NameCategory = categoryDTO.NameCategory;
             _context.Entry(category).State = EntityState.Modified;
-
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
+                if (!CategoryExists(id)) return NotFound();
                 else { throw; }
             }
             return NoContent();

@@ -141,7 +141,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Route("search")]
         public async Task<ActionResult<ProductDTO>> GetProduct(string search, string suppliers, string presentation)
         {
-            if (_context.Products == null || search == null || suppliers == null || presentation == null) return Unauthorized();
+            if (_context.Products == null || search == null || suppliers == null || presentation == null) return BadRequest();
             ProductSearchDTO productSearch = new ProductSearchDTO
             {
                 presentation = presentation,
@@ -175,6 +175,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             var supplier = _context.Suppliers.FirstOrDefault(p => p.NameSupplier == productSearchDTO.suppliers);
             var presentation = _context.Presentations.FirstOrDefault(p => p.NamePresentation == productSearchDTO.presentation);
+            if (presentation == null || supplier == null) return null;
             var product = _context.Products
              .FirstOrDefault(p => p.NameProduct == productSearchDTO.search &&
                                   p.IdSupplier == supplier.IdSupplier &&
