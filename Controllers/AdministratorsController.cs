@@ -93,7 +93,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPost]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<Administrator>> PostAdministrator(AdministratorDTO administrator)
         {
             if (_context.Administrators == null)
