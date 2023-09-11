@@ -194,7 +194,8 @@ namespace BACK_END_DIAZNATURALS.Controllers
             var suplier = _context.Suppliers.FirstOrDefault(i => i.NameSupplier == productDTO.supplier);
             var presentation = _context.Presentations.FirstOrDefault(i => i.NamePresentation == productDTO.presentation);
             var category = _context.Categories.FirstOrDefault(i => i.NameCategory == productDTO.category);
-            if (suplier == null || presentation == null || category == null) return Unauthorized();
+            if (suplier == null || presentation == null || category == null) return NotFound();
+            if (ProductsExists(suplier.IdSupplier, presentation.IdPresentation, productDTO.name)) return Conflict("Ya existe un producto con el nombre \"" + productDTO.name + "\" el proveedor \"" + productDTO.supplier + "\" y la presentacion \"" + productDTO.presentation + "\".");
             product.NameProduct = productDTO.name;
             product.DescriptionProduct = productDTO.description;
             product.ImageProduct = productDTO.image;
