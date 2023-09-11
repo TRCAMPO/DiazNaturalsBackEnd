@@ -176,6 +176,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 return BadRequest();
             }
+            if(clientDTO.nameClient==null || clientDTO.emailClient==null|| clientDTO.addressClient==null || clientDTO.nitClient==null || clientDTO.cityClient==null || clientDTO.stateClient==null
+                || clientDTO.phoneClient==null || clientDTO.nameContactClient==null) return BadRequest();
+            if (ClientNameExists(clientDTO.nameClient)) return Conflict("El nombre de cliente ya existe");
+            if (ClientNitExists(clientDTO.nitClient)) return Conflict("El Nit de cliente ya existe");
+            if (ClientEmailExists(clientDTO.emailClient)) return Conflict("El email de cliente ya existe");
 
             var client = _context.Clients.FirstOrDefault(i => i.NitClient == nit);
             if (client == null || !client.IsActiveClient)
