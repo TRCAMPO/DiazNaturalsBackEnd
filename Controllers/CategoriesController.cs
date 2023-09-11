@@ -1,5 +1,6 @@
 ﻿using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
         {
             if (_context.Categories == null) return NotFound();
@@ -37,6 +39,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<CategoryDTO>> GetCategory(int id)
         {
             if (_context.Categories == null) return NotFound();
@@ -55,6 +58,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutCategory(int id, CategoryDTO categoryDTO)
         {
             if (id != categoryDTO.IdCategory) return BadRequest();
@@ -77,6 +81,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Category>> PostCategory(CategoriesAddDTO categoryDTO)
         {
             if (_context.Categories == null)
@@ -97,6 +102,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             if (_context.Categories == null) return NotFound();

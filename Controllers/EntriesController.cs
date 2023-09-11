@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -26,6 +27,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<EntryGetDTO>>> GetEntries()
         {
             if (_context.Entries == null) return NotFound();
@@ -49,6 +51,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<EntryGetDTO>> GetEntry(int id)
         {
             if (_context.Entries == null) return NotFound();

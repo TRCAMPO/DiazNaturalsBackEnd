@@ -1,4 +1,5 @@
 ﻿using BACK_END_DIAZNATURALS.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BACK_END_DIAZNATURALS.Controllers
@@ -20,6 +21,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpPost]
         [Route("load")]
+        [Authorize]
         public async Task<IActionResult> LoadImage(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -35,6 +37,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet("{imageName}")]
+        [Authorize]
         public async Task<IActionResult> GetImage(string imageName)
         {
             var imageStream = await _firebaseStorageService.GetImageAsync(imageName);

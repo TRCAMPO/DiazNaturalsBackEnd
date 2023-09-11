@@ -1,5 +1,6 @@
 ﻿using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -24,6 +25,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("all")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<SupplierDTO>>> GetAllSuppliers()
         {
             var supplierDTOs = await _context.Suppliers
@@ -45,6 +47,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("active")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<SupplierDTO>>> GetActiveSuppliers()
         {
             if (_context.Suppliers == null) return NotFound();
@@ -68,6 +71,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("inactive")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<SupplierDTO>>> GetInactiveSuppliers()
         {
             if (_context.Suppliers == null) return NotFound();
@@ -90,6 +94,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<Supplier>> GetSupplier(int id)
         {
             if (_context.Suppliers == null) return NotFound();
@@ -112,6 +117,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet()]
         [Route("search")]
+        [Authorize]
         public async Task<ActionResult<SupplierDTO>> GetSearchClients(string search)
         {
             Supplier supplier = SearchClient(search);
@@ -145,6 +151,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPut("{nitSupplier}")]
+        [Authorize]
         public async Task<IActionResult> PutSupplier([Required] string nitSupplier, SupplierAddDTO supplierDTO)
         {
             if (supplierDTO == null) return BadRequest();
@@ -175,6 +182,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Supplier>> PostSupplier(SupplierAddDTO supplierDTO)
         {
             if (_context.Suppliers == null) return Problem("Entity set 'DiazNaturalsContext.Suppliers'  is null.");
@@ -209,6 +217,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpPatch]
         [Route("EditState")]
+        [Authorize]
         public async Task<ActionResult> PatchSupplier(SupplierDeleteDTO supplierDTO)
         {
             var supplier = _context.Suppliers.FirstOrDefault(i => i.NitSupplier == supplierDTO.nitSupplier);
@@ -231,6 +240,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteSupplier(int id)
         {
             if (_context.Suppliers == null) return NotFound();

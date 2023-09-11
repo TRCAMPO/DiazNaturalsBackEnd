@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -28,6 +29,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("all")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetAllProducts()
         {
             if (_context.Products == null) return NotFound();
@@ -56,6 +58,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("active")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetActiveProducts()
         {
             if (_context.Products == null) return NotFound();
@@ -85,6 +88,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("inactive")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetInactiveProducts()
         {
             if (_context.Products == null) return NotFound();
@@ -113,6 +117,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<ProductDTO>> GetProduct(int id)
         {
             if (_context.Products == null) return NotFound();
@@ -139,6 +144,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet()]
         [Route("search")]
+        [Authorize]
         public async Task<ActionResult<ProductDTO>> GetProduct(string search, string suppliers, string presentation)
         {
             if (_context.Products == null || search == null || suppliers == null || presentation == null) return BadRequest();
@@ -187,6 +193,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutProduct(int id, ProductDTO productDTO)
         {
             var product = _context.Products.FirstOrDefault(p => p.IdProduct == id);
@@ -221,6 +228,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Product>> PostProduct(ProductAddDTO productDTO)
         {
             if (_context.Products == null || productDTO == null) return Problem("Entity set 'DiazNaturalsContext.Products'  is null.");
@@ -264,6 +272,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpPatch]
         [Route("EditState")]
+        [Authorize]
         public async Task<ActionResult> Patch([Required] int id, ProductDeleteDTO productDTO)
         {
             var product = _context.Products.FirstOrDefault(i => i.IdProduct == productDTO.idProduct);
@@ -285,6 +294,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             if (_context.Products == null) return NotFound();

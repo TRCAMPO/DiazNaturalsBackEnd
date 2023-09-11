@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -26,6 +27,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<PresentationDTO>>> GetPresentations()
         {
             if (_context.Presentations == null) return NotFound();
@@ -42,6 +44,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<PresentationDTO>> GetPresentation(int id)
         {
             if (_context.Presentations == null)
@@ -65,6 +68,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutPresentation(int id, PresentationDTO presentationDTO)
         {
             if (id != presentationDTO.IdPresentation) return BadRequest();
@@ -90,6 +94,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Presentation>> PostPresentation(PresentationAddDTO presentationDTO)
         {
             if (_context.Presentations == null) return Problem("Entity set 'DiazNaturalsContext.Presentations'  is null.");
@@ -107,6 +112,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeletePresentation(int id)
         {
             if (_context.Presentations == null) return NotFound();

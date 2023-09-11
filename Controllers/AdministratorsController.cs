@@ -1,6 +1,7 @@
 ﻿using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Encrypt;
 using BACK_END_DIAZNATURALS.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<AdministratorGetDTO>>> GetAdministrators()
         {
             if (_context.Administrators == null)
@@ -40,6 +42,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<AdministratorGetDTO>> GetAdministrator(int id)
         {
             if (_context.Administrators == null)
@@ -64,6 +67,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPut("{email}")]
+        [Authorize]
         public async Task<IActionResult> PutAdministrator(string email, AdministratorEditDTO administratorDTO)
         {
             if(administratorDTO == null)return NotFound();
@@ -89,6 +93,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Administrator>> PostAdministrator(AdministratorDTO administrator)
         {
             if (_context.Administrators == null)

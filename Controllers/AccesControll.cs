@@ -2,6 +2,7 @@
 using BACK_END_DIAZNATURALS.Encrypt;
 using BACK_END_DIAZNATURALS.Jwt;
 using BACK_END_DIAZNATURALS.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -93,6 +94,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpPost]
         [Route("SendEmail")]
+        [Authorize]
         public async Task<IActionResult> SendEmail([FromBody] EmailDTO email)
         {
             if (_context.Administrators == null)
@@ -123,6 +125,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpPost]
         [Route("ValidarCode")]
+        [Authorize]
         public IActionResult ValidarCode([FromBody] CodeValidator codeValidator)
         {
             if (codeValidator == null)
@@ -144,6 +147,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPut("EditarContrasena")]
+        [Authorize]
         public async Task<IActionResult> PutAdminsitratorPassword(InputCredentialDTO newCredential)
         {
             Administrator administrator = _context.Administrators.FirstOrDefault(a => a.EmailAdministrator == newCredential.email);
