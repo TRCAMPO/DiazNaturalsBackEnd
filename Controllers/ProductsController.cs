@@ -202,7 +202,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             var presentation = _context.Presentations.FirstOrDefault(i => i.NamePresentation == productDTO.presentation);
             var category = _context.Categories.FirstOrDefault(i => i.NameCategory == productDTO.category);
             if (suplier == null || presentation == null || category == null) return NotFound();
-            if (ProductsExists(suplier.IdSupplier, presentation.IdPresentation, productDTO.name)) return Conflict("Ya existe un producto con el nombre \"" + productDTO.name + "\" el proveedor \"" + productDTO.supplier + "\" y la presentacion \"" + productDTO.presentation + "\".");
+            if (ProductsExistsEdit(suplier.IdSupplier, presentation.IdPresentation, productDTO.name, productDTO.IdProduct)) return Conflict("Ya existe un producto con el nombre \"" + productDTO.name + "\" el proveedor \"" + productDTO.supplier + "\" y la presentacion \"" + productDTO.presentation + "\".");
             product.NameProduct = productDTO.name;
             product.DescriptionProduct = productDTO.description;
             product.ImageProduct = productDTO.image;
@@ -318,6 +318,17 @@ namespace BACK_END_DIAZNATURALS.Controllers
             e.IdSupplier == suplier &&
             e.IdPresentation == presentattion
             )??false;
+            return producExist;
+        }
+        private bool ProductsExistsEdit(int suplier, int presentattion, string name, int  id)
+        {
+            bool producExist = _context.Products?
+                .Where(i=> i.IdProduct!=id)
+                .Any(e =>
+            e.NameProduct == name &&
+            e.IdSupplier == suplier &&
+            e.IdPresentation == presentattion
+            ) ?? false;
             return producExist;
         }
     }

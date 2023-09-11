@@ -156,8 +156,8 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (supplierDTO == null) return BadRequest();
             if(supplierDTO.NameSupplier==null || supplierDTO.AddressSupplier==null || supplierDTO.EmailSupplier==null || supplierDTO.NitSupplier==null || supplierDTO.PhoneSupplier==null) return BadRequest();
-            if (SupplierNameExists(supplierDTO.NameSupplier)) return Conflict("El Nombre del proveedor \"" + supplierDTO.NameSupplier + "\" ya existe.");
-            if (SupplierNitExists(supplierDTO.NitSupplier)) return Conflict("El Nit del proveedor \"" + supplierDTO.NitSupplier + "\" ya existe.");
+            if (SupplierNameExistsEdit(supplierDTO.NameSupplier, supplierDTO.IdSupplier)) return Conflict("El Nombre del proveedor \"" + supplierDTO.NameSupplier + "\" ya existe.");
+            if (SupplierNitExistsEdit(supplierDTO.NitSupplier, supplierDTO.IdSupplier)) return Conflict("El Nit del proveedor \"" + supplierDTO.NitSupplier + "\" ya existe.");
             var supplier = _context.Suppliers.FirstOrDefault(c => c.NitSupplier == nitSupplier);
             if (supplier == null || !supplier.IsActiveSupplier) return NotFound();
             supplier.NameSupplier = supplierDTO.NameSupplier;
@@ -265,6 +265,18 @@ namespace BACK_END_DIAZNATURALS.Controllers
         private bool SupplierNameExists(string name)
         {
             return (_context.Suppliers?.Any(e => e.NameSupplier == name)).GetValueOrDefault();
+        }
+        private bool SupplierNitExistsEdit(string nit, int id)
+        {
+            return (_context.Suppliers?
+                .Where(e => e.IdSupplier == id)
+                .Any(e => e.NitSupplier == nit)).GetValueOrDefault();
+        }
+        private bool SupplierNameExistsEdit(string name, int id)
+        {
+            return (_context.Suppliers?
+                .Where (e => e.IdSupplier == id)
+                .Any(e => e.NameSupplier == name)).GetValueOrDefault();
         }
     }
 }

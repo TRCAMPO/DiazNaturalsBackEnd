@@ -185,9 +185,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
             if(clientDTO.nameClient==null || clientDTO.emailClient==null|| clientDTO.addressClient==null || clientDTO.nitClient==null || clientDTO.cityClient==null || clientDTO.stateClient==null
                 || clientDTO.phoneClient==null || clientDTO.nameContactClient==null) return BadRequest();
-            if (ClientNameExists(clientDTO.nameClient)) return Conflict("El nombre de cliente ya existe");
-            if (ClientNitExists(clientDTO.nitClient)) return Conflict("El Nit de cliente ya existe");
-            if (ClientEmailExists(clientDTO.emailClient)) return Conflict("El email de cliente ya existe");
+            if (ClientNameExistsEdit(clientDTO.nameClient, clientDTO.idClient)) return Conflict("El nombre de cliente ya existe");
+            if (ClientNitExistsEdit(clientDTO.nitClient, clientDTO.idClient)) return Conflict("El Nit de cliente ya existe");
+            if (ClientEmailExistsEdit(clientDTO.emailClient, clientDTO.idClient)) return Conflict("El email de cliente ya existe");
 
             var client = _context.Clients.FirstOrDefault(i => i.NitClient == nit);
             if (client == null || !client.IsActiveClient)
@@ -373,5 +373,24 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             return (_context.Clients?.Any(e => e.EmailClient == email)).GetValueOrDefault();
         }
+        private bool ClientNitExistsEdit(string nit, int id)
+        {
+            return (_context.Clients?
+                .Where(i=> i.IdClient != id)
+                .Any(e => e.NitClient == nit)).GetValueOrDefault();
+        }
+        private bool ClientNameExistsEdit(string name, int id)
+        {
+            return (_context.Clients?
+                .Where(i=> i.IdClient != id)
+                .Any(e => e.NameClient == name)).GetValueOrDefault();
+        }
+        private bool ClientEmailExistsEdit(string email, int id)
+        {
+            return (_context.Clients?
+                .Where(i=>i.IdClient!=id)
+                .Any(e => e.EmailClient == email)).GetValueOrDefault();
+        }
+
     }
 }

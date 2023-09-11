@@ -2,6 +2,8 @@
 {
     public class SupplierAddDTO
     {
+        public int IdSupplier { get; set; }
+
         public string NitSupplier { get; set; } = null!;
 
         public string NameSupplier { get; set; } = null!;
