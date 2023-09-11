@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Encrypt;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -29,6 +30,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("all")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<ClientsDTO>>> GetClients()
         {
             if (_context.Clients == null)
@@ -57,6 +59,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("active")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<ClientsDTO>>> GetActiveClients()
         {
             if (_context.Clients == null)
@@ -86,6 +89,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("inactive")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<ClientsDTO>>> GetInactiveClients()
         {
             if (_context.Clients == null)
@@ -114,6 +118,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet("{nit}")]
+        [Authorize]
         public async Task<ActionResult<Client>> GetClient(int id)
         {
             if (_context.Clients == null)
@@ -133,6 +138,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpGet]
         [Route("search")]
+        [Authorize]
         public async Task<ActionResult<ClientsDTO>> GetSearchClients(string search)
         {
             Client client = SearchClient(search);
@@ -170,6 +176,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPut("{nit}")]
+        [Authorize]
         public async Task<IActionResult> PutClient(string nit, ClientsDTO clientDTO)
         {
             if (clientDTO == null)
@@ -219,6 +226,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Client>> PostClient(ClientsDTO clientDTO)
         {
             if (_context.Clients == null || clientDTO == null)
@@ -297,6 +305,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpPatch]
         [Route("EditState")]
+        [Authorize]
         public async Task<ActionResult> PatchClient(ClientDeleteDTO clientDTO)
         {
             var client = _context.Clients.FirstOrDefault(i => i.NitClient == clientDTO.nitClient);
@@ -328,6 +337,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpDelete("{nit}")]
+        [Authorize]
         public async Task<IActionResult> DeleteClient(int id)
         {
             if (_context.Clients == null)
