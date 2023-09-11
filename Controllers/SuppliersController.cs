@@ -147,6 +147,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [HttpPut("{nitSupplier}")]
         public async Task<IActionResult> PutSupplier([Required] string nitSupplier, SupplierAddDTO supplierDTO)
         {
+            if (supplierDTO == null) return BadRequest();
+            if(supplierDTO.NameSupplier==null || supplierDTO.AddressSupplier==null || supplierDTO.EmailSupplier==null || supplierDTO.NitSupplier==null || supplierDTO.PhoneSupplier==null) return BadRequest();
+            if (SupplierNameExists(supplierDTO.NameSupplier)) return Conflict("El Nombre del proveedor \"" + supplierDTO.NameSupplier + "\" ya existe.");
+            if (SupplierNitExists(supplierDTO.NitSupplier)) return Conflict("El Nit del proveedor \"" + supplierDTO.NitSupplier + "\" ya existe.");
             var supplier = _context.Suppliers.FirstOrDefault(c => c.NitSupplier == nitSupplier);
             if (supplier == null || !supplier.IsActiveSupplier) return NotFound();
             supplier.NameSupplier = supplierDTO.NameSupplier;
@@ -176,7 +180,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             if (_context.Suppliers == null) return Problem("Entity set 'DiazNaturalsContext.Suppliers'  is null.");
             if (supplierDTO == null) return BadRequest();
             if(SupplierNameExists(supplierDTO.NameSupplier))return Conflict("El Nombre del proveedor \""+ supplierDTO.NameSupplier+"\" ya existe.");
-            if(SupplierNitExists(supplierDTO.NitSupplier))return Conflict("El Nit del proveedor \"" + supplierDTO.NitSupplier + "\" ya existe.");
+            if(SupplierNitExists(supplierDTO.NitSupplier))return Conflict("El Nit \"" + supplierDTO.NitSupplier + "\" para proveedor ya existe.");
             var supplier = new Supplier
             {
                 NitSupplier = supplierDTO.NitSupplier,
