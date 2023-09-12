@@ -269,13 +269,13 @@ namespace BACK_END_DIAZNATURALS.Controllers
         private bool SupplierNitExistsEdit(string nit, int id)
         {
             return (_context.Suppliers?
-                .Where(e => e.IdSupplier == id)
+                .Where(e => e.IdSupplier != id)
                 .Any(e => e.NitSupplier == nit)).GetValueOrDefault();
         }
         private bool SupplierNameExistsEdit(string name, int id)
         {
             return (_context.Suppliers?
-                .Where (e => e.IdSupplier == id)
+                .Where (e => e.IdSupplier != id)
                 .Any(e => e.NameSupplier == name)).GetValueOrDefault();
         }
     }
