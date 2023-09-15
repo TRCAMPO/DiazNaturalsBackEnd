@@ -150,15 +150,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
 
-        [HttpPut("{nitSupplier}")]
+        [HttpPut("{idSupplier}")]
         [Authorize]
-        public async Task<IActionResult> PutSupplier([Required] string nitSupplier, SupplierAddDTO supplierDTO)
+        public async Task<IActionResult> PutSupplier([Required] int  idSupplier, SupplierAddDTO supplierDTO)
         {
             if (supplierDTO == null) return BadRequest();
             if(supplierDTO.NameSupplier==null || supplierDTO.AddressSupplier==null || supplierDTO.EmailSupplier==null || supplierDTO.NitSupplier==null || supplierDTO.PhoneSupplier==null) return BadRequest();
             if (SupplierNameExistsEdit(supplierDTO.NameSupplier, supplierDTO.IdSupplier)) return Conflict("El Nombre del proveedor \"" + supplierDTO.NameSupplier + "\" ya existe.");
             if (SupplierNitExistsEdit(supplierDTO.NitSupplier, supplierDTO.IdSupplier)) return Conflict("El Nit del proveedor \"" + supplierDTO.NitSupplier + "\" ya existe.");
-            var supplier = _context.Suppliers.FirstOrDefault(c => c.NitSupplier == nitSupplier);
+            var supplier = _context.Suppliers.FirstOrDefault(c => c.IdSupplier == idSupplier);
             if (supplier == null || !supplier.IsActiveSupplier) return NotFound();
             supplier.NameSupplier = supplierDTO.NameSupplier;
             supplier.AddressSupplier = supplierDTO.AddressSupplier;
