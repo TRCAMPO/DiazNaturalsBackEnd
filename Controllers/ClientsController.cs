@@ -175,9 +175,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
 
-        [HttpPut("{nit}")]
+        [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> PutClient(string nit, ClientsDTO clientDTO)
+        public async Task<IActionResult> PutClient(int id, ClientsDTO clientDTO)
         {
             if (clientDTO == null)
             {
@@ -189,7 +189,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             if (ClientNitExistsEdit(clientDTO.nitClient, clientDTO.idClient)) return Conflict("El Nit de cliente ya existe");
             if (ClientEmailExistsEdit(clientDTO.emailClient, clientDTO.idClient)) return Conflict("El email de cliente ya existe");
 
-            var client = _context.Clients.FirstOrDefault(i => i.NitClient == nit);
+            var client = _context.Clients.FirstOrDefault(i => i.IdClient == id);
             if (client == null || !client.IsActiveClient)
             {
                 return NotFound();
