@@ -36,59 +36,104 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Route("Validar")]
         public IActionResult Validar([FromBody] InputCredentialDTO request)
         {
-            if (_context.Administrators == null)
+            Administrator administrator = _context.Administrators.FirstOrDefault(i => i.EmailAdministrator == request.email);
+            Client client = _context.Clients.FirstOrDefault(i => i.EmailClient == request.email);
+
+            if (administrator != null)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
-            }
-            Administrator user = _context.Administrators.FirstOrDefault(i => i.EmailAdministrator == request.email);
+                var credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == administrator.IdCredential);
 
-            if (user == null)
-            {
-                return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
-            }
+                if (credential == null)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
+                }
 
-            var credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == user.IdCredential);
+                var hash = HashEncryption.CheckHash(request.password, credential.PasswordCredential, credential.SaltCredential);
+                if (!hash)
+                {
+                    return StatusCode(StatusCodes.Status401Unauthorized, new { token = "" });
+                }
 
-            if (credential == null)
-            {
-                return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
-            }
+                // Crear el token JWT para el administrador
+                var jwt = new JwtData
+                {
+                    Key = "TrabajoCampoDe.@-l",
+                    Issuer = "https://localhost:7200/",
+                    Audience = "https://localhost:7200/",
+                    Subject = "basewebDiazNaturals"
+                };
 
-            var hash = HashEncryption.CheckHash(request.password, credential.PasswordCredential, credential.SaltCredential);
-            if (!hash)
-            {
-                return StatusCode(StatusCodes.Status401Unauthorized, new { token = "" });
-            }
+                var claims = new[]
+                {
+                    new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub, jwt.Subject),
+                    new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
+                    new Claim("id", administrator.IdAdministrator.ToString()),
+                    new Claim("Correo", administrator.EmailAdministrator),
+                    new Claim("Nombre", administrator.NameAdministrator)
+                };
 
-            var jwt = new JwtData
-            {
-                Key = "TrabajoCampoDe.@-l",
-                Issuer = "https://localhost:7200/",
-                Audience = "https://localhost:7200/",
-                Subject = "basewebDiazNaturals"
-            };
-
-            var claims = new[]
-            {
-                new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub, jwt.Subject),
-                new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
-                new Claim("id", user.IdAdministrator.ToString()),
-                new Claim("Correo", user.EmailAdministrator),
-                new Claim("Nombre", user.NameAdministrator)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes((jwt.Key)));
-            var singIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken(
-                jwt.Issuer,
-                jwt.Audience,
-                claims,
-                expires: DateTime.Now.AddMinutes(60),
-                signingCredentials: singIn
+                var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes((jwt.Key)));
+                var singIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                var token = new JwtSecurityToken(
+                    jwt.Issuer,
+                    jwt.Audience,
+                    claims,
+                    expires: DateTime.Now.AddMinutes(60),
+                    signingCredentials: singIn
                 );
-            return StatusCode(StatusCodes.Status200OK, new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+
+                return StatusCode(StatusCodes.Status200OK, new { token = new JwtSecurityTokenHandler().WriteToken(token), typeUser = "admin" });
+            }
+            else if (client != null)
+            {
+                var credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == client.IdCredential);
+
+                if (credential == null)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
+                }
+
+                var hash = HashEncryption.CheckHash(request.password, credential.PasswordCredential, credential.SaltCredential);
+                if (!hash)
+                {
+                    return StatusCode(StatusCodes.Status401Unauthorized, new { token = "" });
+                }
+
+                // Crear el token JWT para el administrador
+                var jwt = new JwtData
+                {
+                    Key = "TrabajoCampoDe.@-l",
+                    Issuer = "https://localhost:7200/",
+                    Audience = "https://localhost:7200/",
+                    Subject = "basewebDiazNaturals"
+                };
+
+                var claims = new[]
+                {
+                    new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub, jwt.Subject),
+                    new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
+                    new Claim("id", client.IdClient.ToString()),
+                    new Claim("Correo", client.EmailClient),
+                    new Claim("Nombre", client.NameClient)
+                };
+
+                var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes((jwt.Key)));
+                var singIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                var token = new JwtSecurityToken(
+                    jwt.Issuer,
+                    jwt.Audience,
+                    claims,
+                    expires: DateTime.Now.AddMinutes(60),
+                    signingCredentials: singIn
+                );
+
+                return StatusCode(StatusCodes.Status200OK, new { token = new JwtSecurityTokenHandler().WriteToken(token), typeUser = "client" });
+            }
+            return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
         }
+
 
 
 

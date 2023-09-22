@@ -10,7 +10,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
     {
         private readonly FirebaseStorageService _firebaseStorageService;
 
-
+        
 
         public BlobController(FirebaseStorageService firebaseStorageService)
         {
