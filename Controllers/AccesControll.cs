@@ -198,21 +198,36 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             Administrator administrator = _context.Administrators.FirstOrDefault(a => a.EmailAdministrator == newCredential.email);
             Client client = _context.Clients.FirstOrDefault(a => a.EmailClient == newCredential.email);
+
             if (administrator == null && client == null)
             {
                 return NotFound();
             }
-            var credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == administrator.IdCredential);
-            if (credential==null)
+
+            Credential credential = null;
+
+            if (administrator != null)
+            {
+                credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == administrator.IdCredential);
+            }
+            else if (client != null)
             {
                 credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == client.IdCredential);
             }
+
+            if (credential == null)
+            {
+                return NotFound();
+            }
+
             HashedFormat hash = HashEncryption.Hash(newCredential.password);
             credential.PasswordCredential = hash.Password;
             credential.SaltCredential = hash.HashAlgorithm;
+
             await _context.SaveChangesAsync();
             return Ok();
         }
+
 
 
 
