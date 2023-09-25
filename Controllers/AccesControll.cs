@@ -217,7 +217,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             if (credential == null)
             {
-                return NotFound("No se encontró una credencial asociada al administrador o cliente.");
+                return NotFound();
             }
 
             HashedFormat hash = HashEncryption.Hash(newCredential.password);
