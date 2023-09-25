@@ -151,7 +151,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
             catch { return BadRequest("Email no válido"); }
 
-            if (_context.Administrators.Any(i => i.EmailAdministrator == email.Email))
+            if (_context.Administrators.Any(i => i.EmailAdministrator == email.Email) || _context.Clients.Any(i => i.EmailClient == email.Email))
             {
                 GenerateRandomCode();
                 try
@@ -177,12 +177,16 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
 
             bool emailExists = _context.Administrators.Any(a => a.EmailAdministrator == codeValidator.Email);
+            bool emailExistsClient = _context.Clients.Any(a => a.EmailClient == codeValidator.Email);
             string cachedCode;
             var ca = _cache.TryGetValue(CacheKey, out cachedCode);
 
-            if (emailExists && codeValidator.Code == cachedCode)
+            if ((emailExists && codeValidator.Code == cachedCode))
             {
                 return Ok(new { exists = emailExists });
+            } else if((emailExistsClient && codeValidator.Code == cachedCode))
+            {
+                return Ok(new { exists = emailExistsClient });
             }
             return StatusCode(StatusCodes.Status404NotFound, new { token = cachedCode });
         }
@@ -193,11 +197,16 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<IActionResult> PutAdminsitratorPassword(InputCredentialDTO newCredential)
         {
             Administrator administrator = _context.Administrators.FirstOrDefault(a => a.EmailAdministrator == newCredential.email);
-            if (administrator == null)
+            Client client = _context.Clients.FirstOrDefault(a => a.EmailClient == newCredential.email);
+            if (administrator == null && client == null)
             {
                 return NotFound();
             }
             var credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == administrator.IdCredential);
+            if (credential==null)
+            {
+                credential = _context.Credentials.FirstOrDefault(i => i.IdCredential == client.IdCredential);
+            }
             HashedFormat hash = HashEncryption.Hash(newCredential.password);
             credential.PasswordCredential = hash.Password;
             credential.SaltCredential = hash.HashAlgorithm;
