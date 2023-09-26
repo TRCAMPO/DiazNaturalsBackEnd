@@ -371,8 +371,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
         private bool ClientEmailExists(string email)
         {
-            return (_context.Clients?.Any(e => e.EmailClient == email)).GetValueOrDefault();
+            return (_context.Clients?.Any(e => e.EmailClient == email) ?? false) ||
+                   (_context.Administrators?.Any(e => e.EmailAdministrator == email) ?? false);
         }
+
         private bool ClientNitExistsEdit(string nit, int id)
         {
             return (_context.Clients?
