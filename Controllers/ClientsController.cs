@@ -161,6 +161,30 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return Ok(clientDTO);
         }
 
+        [HttpGet]
+        [Route("searchEmail")]
+        [Authorize]
+        public async Task<ActionResult<ClientsDTO>> GetSearchClientsEmail(string search)
+        {
+            Client client = SearchClientEmail(search);
+            if (client == null || !client.IsActiveClient)
+            {
+                return NotFound();
+            }
+            var clientDTO = new ClientsDTO
+            {
+                idClient = client.IdClient,
+                nameClient = client.NameClient,
+                addressClient = client.AddressClient,
+                cityClient = client.CityClient,
+                emailClient = client.EmailClient,
+                nameContactClient = client.NameContactClient,
+                nitClient = client.NitClient,
+                phoneClient = client.PhoneClient,
+                stateClient = client.StateClient,
+            };
+            return Ok(clientDTO);
+        }
 
 
         private Client SearchClient(string name)
@@ -169,6 +193,16 @@ namespace BACK_END_DIAZNATURALS.Controllers
             if (client == null)
             {
                 client = _context.Clients.FirstOrDefault(c => c.NitClient == name);
+            }
+            return client;
+        }
+
+        private Client SearchClientEmail(string email)
+        {
+            var client = _context.Clients.FirstOrDefault(i => i.EmailClient == email);
+            if (client == null)
+            {
+                client = _context.Clients.FirstOrDefault(c => c.NitClient == email);
             }
             return client;
         }
