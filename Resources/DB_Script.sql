@@ -63,7 +63,8 @@ CREATE TABLE CLIENTS (
 CREATE TABLE ORDERS (
     id_order INT IDENTITY(1,1), -- ID de la orden (clave primaria)
     id_client INT NOT NULL, -- ID del cliente asociado (clave foránea)
-    start_date_order DATETIME NOT NULL -- Fecha de inicio de la orden
+    start_date_order DATETIME NOT NULL, -- Fecha de inicio de la orden
+    image_order VARCHAR(250) NOT NULL -- Ruta de la imagen del producto
 );
 
 -- Definición de la tabla "ORDER_HISTORY" para almacenar historial de órdenes
@@ -192,6 +193,10 @@ ALTER TABLE ORDERS
 ALTER TABLE ORDERS
     ADD CONSTRAINT FK_IdClient_Order FOREIGN KEY (id_client) REFERENCES CLIENTS (id_client);
 
+-- Agrega una restricción única (UQ) a la tabla "ORDERS" en la columna "image_order"
+ALTER TABLE ORDERS
+    ADD CONSTRAINT UQ_Image_Order UNIQUE (image_order);
+
 -- Agrega una restricción de clave primaria compuesta (PK) a la tabla "ORDER_HISTORY" en las columnas "id_order" e "id_status"
 ALTER TABLE ORDER_HISTORY
     ADD CONSTRAINT PK_Id_Order_History PRIMARY KEY (id_order, id_status);
@@ -251,3 +256,10 @@ ALTER TABLE CARTS
 -- que hace referencia a la tabla "PRODUCTS" en la columna "id_product"
 ALTER TABLE CARTS
     ADD CONSTRAINT FK_IdProduct_Carts FOREIGN KEY (id_product) REFERENCES PRODUCTS (id_product);
+--Agregar columna con precio total del pedido
+ALTER TABLE ORDERS
+    ADD total_price_order INT NOT NULL;
+-- Eliminar restriccion de duplicidad en el nombre de la imagen del comporbante de pago de un pedido, se passa
+-- a controlar esto por back
+ALTER TABLE Orders
+DROP CONSTRAINT UQ_Image_Order;

@@ -60,5 +60,45 @@ namespace BACK_END_DIAZNATURALS.Services
                 return null;
             }
         }
+
+
+
+
+
+
+
+        public async Task<string> ImageUploadProofAsync(IFormFile file, string fileName)
+        {
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+                string filePath = $"ComprobantesDePago/{fileName}";
+                await _storageClient.UploadObjectAsync(BucketName, filePath, null, stream);
+                string url = $"https://storage.googleapis.com/{BucketName}/{filePath}";
+                return url;
+            }
+        }
+
+
+
+        public async Task<Stream> GetImageProofAsync(string fileName)
+        {
+            string filePath = $"ComprobantesDePago/{fileName}";
+            try
+            {
+                var stream = new MemoryStream();
+                await _storageClient.DownloadObjectAsync(BucketName, filePath, stream);
+                stream.Position = 0;
+                return stream;
+            }
+            catch (Google.GoogleApiException ex)
+            {
+                Console.WriteLine($"Error al obtener la imagen: {ex.Message}");
+                return null;
+            }
+        }
+
     }
+
 }

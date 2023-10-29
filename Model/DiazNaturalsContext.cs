@@ -193,17 +193,24 @@ public partial class DiazNaturalsContext : DbContext
                 .HasConstraintName("FK_IdProduct_Entry");
         });
 
+
         modelBuilder.Entity<Order>(entity =>
         {
             entity.HasKey(e => e.IdOrder).HasName("PK_Id_Order");
 
             entity.ToTable("ORDERS");
 
+
             entity.Property(e => e.IdOrder).HasColumnName("id_order");
             entity.Property(e => e.IdClient).HasColumnName("id_client");
+            entity.Property(e => e.ImageOrder)
+                .HasMaxLength(250)
+                .IsUnicode(false)
+                .HasColumnName("image_order");
             entity.Property(e => e.StartDateOrder)
                 .HasColumnType("datetime")
                 .HasColumnName("start_date_order");
+            entity.Property(e => e.TotalPriceOrder).HasColumnName("total_price_order");
 
             entity.HasOne(d => d.IdClientNavigation).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.IdClient)
