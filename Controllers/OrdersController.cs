@@ -106,6 +106,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 IdClient = orderDTO.IdClient,
                 StartDateOrder = orderDTO.StartDateOrder,
+                TotalPriceOrder = orderDTO.TotalPriceOrder,
                 ImageOrder = "SinComprobanteDePago.jpeg",
                 Carts = new List<Cart>()
             };

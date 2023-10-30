@@ -32,8 +32,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
 
             var orders = _context.OrderHistories
-                .Include(o => o.IdOrderNavigation.IdClientNavigation)
-                .Include(o => o.IdStatusNavigation)
                 .Select(c => new GetOrderDTO
                 {
                     IdOrder = c.IdOrder,
