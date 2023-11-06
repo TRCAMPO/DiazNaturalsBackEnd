@@ -59,6 +59,68 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
 
+        [HttpGet]
+        [Route("Search/{nameStatus}")]
+       // [Authorize]
+        public async Task<ActionResult<IEnumerable<GetStatusDTO>>> GetStatusNext(string nameStatus)
+        {
+            if (_context.Statuses == null) return NotFound();
+
+            var status = _context.Statuses
+                .Where(p => p.NameStatus == nameStatus).FirstOrDefault();
+            if(status == null) return NotFound();   
+            int id = status.IdStatus;
+            List<GetStatusDTO> getStatusDTO = new List<GetStatusDTO>();
+            {
+
+            };
+            switch (id)
+            {
+                case 1:
+                    getStatusDTO = getStatusNext(2, 5);
+                    break;
+                case 2:
+                    getStatusDTO = getStatusNext(3);
+                    break;
+                case 3:
+                    getStatusDTO = getStatusNext(4);
+                    break;
+            }
+            if (getStatusDTO == null) return NotFound();
+            return Ok(getStatusDTO);
+        }
+
+
+        private List<GetStatusDTO> getStatusNext(int idStatus, int idStatus2)
+        {
+            var getStatusDTO = _context.Statuses
+                        .Where(c => c.IdStatus == idStatus || c.IdStatus == idStatus2)
+                        .Select(p => new GetStatusDTO
+                        {
+                            IdStatus = p.IdStatus,
+                            NameStatus = p.NameStatus,
+                        }).ToList();
+
+            return getStatusDTO;
+        }
+
+
+        private List<GetStatusDTO> getStatusNext(int idStatus)
+        {
+            var getStatusDTO = _context.Statuses
+                        .Where(c => c.IdStatus == idStatus)
+                        .Select(p => new GetStatusDTO
+                        {
+                            IdStatus = p.IdStatus,
+                            NameStatus = p.NameStatus,
+                        }).ToList();
+
+            return getStatusDTO;
+        }
+
+
+
+
         [HttpPost]
         public async Task<ActionResult<GetStatusDTO>> PostStatus(PostStatusDTO status)
         {
@@ -76,6 +138,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return Ok(statusAux);
 
         }
+
 
 
 

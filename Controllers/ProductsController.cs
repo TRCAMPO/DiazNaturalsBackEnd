@@ -177,6 +177,35 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
 
+        [HttpGet()]
+        [Route("ValidateQuantity")]
+        [Authorize]
+        public IActionResult GetValidateQuantityProduct(string search, string suppliers, string presentation, int quantityProduct)
+        {
+            if (_context.Products == null || search == null || suppliers == null || presentation == null) return BadRequest();
+            ProductSearchDTO productSearch = new ProductSearchDTO
+            {
+                presentation = presentation,
+                suppliers = suppliers,
+                search = search,
+            };
+            Product p = SearchProduct(productSearch);
+            if (p == null) return NotFound();
+            if (!p.IsActiveProduct) return NotFound();
+            if (p.QuantityProduct < quantityProduct)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new { quantity = "Cantidad insuficiente", nameProduct = search, supplierProduct = suppliers, presentation = presentation });
+            }
+            else if (p.QuantityProduct >= quantityProduct)
+            {
+                return StatusCode(StatusCodes.Status200OK, new { quantity = "Cantidad suficiente", nameProduct = search, supplierProduct = suppliers, presentation = presentation });
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Error interno del servidor" });
+        }
+
+
+
         private Product SearchProduct(ProductSearchDTO productSearchDTO)
         {
             var supplier = _context.Suppliers.FirstOrDefault(p => p.NameSupplier == productSearchDTO.suppliers);
@@ -189,6 +218,36 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return product;
         }
 
+
+
+        [HttpGet]
+        [Route("lowQuantity")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetLowQuantityProducts()
+        {
+
+            if (_context.Products == null) return NotFound();
+            var products = _context.Products
+              .Where(p => p.IsActiveProduct == true)
+              .Include(p => p.IdSupplierNavigation)
+              .Include(p => p.IdPresentationNavigation)
+              .Include(p => p.IdCategoryNavigation)
+              .Where(p => p.QuantityProduct < 10)
+              .Select(p => new
+              {
+                  IdProduct = p.IdProduct,
+                  supplier = p.IdSupplierNavigation.NameSupplier,
+                  presentation = p.IdPresentationNavigation.NamePresentation,
+                  category = p.IdCategoryNavigation.NameCategory,
+                  name = p.NameProduct,
+                  price = p.PriceProduct,
+                  amount = p.QuantityProduct,
+                  description = p.DescriptionProduct,
+                  image = p.ImageProduct
+              })
+              .ToList();
+            return Ok(products);
+        }
 
 
 

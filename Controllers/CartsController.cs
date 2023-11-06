@@ -35,7 +35,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                       name= c.IdProductNavigation.NameProduct,
                       supplier = c.IdProductNavigation.IdSupplierNavigation.NameSupplier,
                       presentation = c.IdProductNavigation.IdPresentationNavigation.NamePresentation,
-                      quantity= c.IdProductNavigation.QuantityProduct,
+                      quantity= c.QuantityProductCart,
                       image= c.IdProductNavigation.ImageProduct,
                       price= c.IdProductNavigation.PriceProduct                    
                   }).ToList();

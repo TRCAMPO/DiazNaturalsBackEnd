@@ -49,10 +49,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
                     ImageOrder = c.IdOrderNavigation.ImageOrder,
                     StatusOrder = c.IdStatusNavigation.NameStatus,
                     TotalPriceOrder = c.IdOrderNavigation.TotalPriceOrder,
+                    DateOrderHistory = c.DateOrderHistory
                 }).ToList();
 
             return Ok(orders);
         }
+
+
+
 
         [HttpGet]
         [Route("all/last")]
@@ -63,36 +67,30 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 return NotFound();
             }
             var orders = _context.OrderHistories
-            .GroupBy(c => c.IdOrder)
-            .Select(group => group.OrderByDescending(c => c.DateOrderHistory).First())
-            .ToList();
-        
-
-            ArrayList s = new ArrayList ();
-            foreach ( var c in orders)
-            {
-                GetOrderDTO ss = new GetOrderDTO
-                {
-                    IdOrder = c.IdOrder,
-                    IdClient = c.IdOrderNavigation.IdClient,
-                    nitClient = c.IdOrderNavigation.IdClientNavigation.NitClient,
-                    nameClient = c.IdOrderNavigation.IdClientNavigation.NameClient,
-                    stateClient = c.IdOrderNavigation.IdClientNavigation.StateClient,
-                    cityClient = c.IdOrderNavigation.IdClientNavigation.CityClient,
-                    addressClient = c.IdOrderNavigation.IdClientNavigation.AddressClient,
-                    phoneClient = c.IdOrderNavigation.IdClientNavigation.PhoneClient,
-                    nameContactClient = c.IdOrderNavigation.IdClientNavigation.NameContactClient,
-                    StartDateOrder = c.IdOrderNavigation.StartDateOrder,
-                    ImageOrder = c.IdOrderNavigation.ImageOrder,
-                    StatusOrder = c.IdStatusNavigation.NameStatus,
-                    TotalPriceOrder = c.IdOrderNavigation.TotalPriceOrder,
-                };
-                s.Add(ss);
-                }    
-               
-            
-            return Ok(s);
+               .Select(c => new GetOrderDTO
+               {
+                   IdOrder = c.IdOrder,
+                   IdClient = c.IdOrderNavigation.IdClient,
+                   nitClient = c.IdOrderNavigation.IdClientNavigation.NitClient,
+                   nameClient = c.IdOrderNavigation.IdClientNavigation.NameClient,
+                   stateClient = c.IdOrderNavigation.IdClientNavigation.StateClient,
+                   cityClient = c.IdOrderNavigation.IdClientNavigation.CityClient,
+                   addressClient = c.IdOrderNavigation.IdClientNavigation.AddressClient,
+                   phoneClient = c.IdOrderNavigation.IdClientNavigation.PhoneClient,
+                   nameContactClient = c.IdOrderNavigation.IdClientNavigation.NameContactClient,
+                   StartDateOrder = c.IdOrderNavigation.StartDateOrder,
+                   ImageOrder = c.IdOrderNavigation.ImageOrder,
+                   StatusOrder = c.IdStatusNavigation.NameStatus,
+                   TotalPriceOrder = c.IdOrderNavigation.TotalPriceOrder,
+                   DateOrderHistory = c.DateOrderHistory
+               }).GroupBy(c => c.IdOrder)
+               .Select(group => group.OrderByDescending(c => c.DateOrderHistory).First())
+               .ToList();
+            return Ok(orders);
         }
+
+
+
 
         [HttpGet]
         [Route("client")]
@@ -103,17 +101,22 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 return NotFound();
             }
             var orders = _context.OrderHistories
-                .Where(c=> c.IdOrderNavigation.IdClientNavigation.IdClient== idClient)
+                .Where(c => c.IdOrderNavigation.IdClientNavigation.IdClient == idClient)
                  .Select(c => new GetOrderDTO
                  {
                      IdOrder = c.IdOrder,
+                     IdClient = c.IdOrderNavigation.IdClient,
                      StartDateOrder = c.IdOrderNavigation.StartDateOrder,
                      ImageOrder = c.IdOrderNavigation.ImageOrder,
                      StatusOrder = c.IdStatusNavigation.NameStatus,
                      TotalPriceOrder = c.IdOrderNavigation.TotalPriceOrder,
+                     DateOrderHistory = c.DateOrderHistory
                  }).ToList();
             return Ok(orders);
         }
+
+
+
 
         [HttpGet]
         [Route("client/last")]
@@ -121,28 +124,67 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             var orders = _context.OrderHistories
                 .Where(c => c.IdOrderNavigation.IdClientNavigation.IdClient == idClient)
-                .GroupBy(c => c.IdOrder)
+                .Select(c => new GetOrderDTO
+                {
+                    IdOrder = c.IdOrder,
+                    IdClient = c.IdOrderNavigation.IdClient,
+                    StartDateOrder = c.IdOrderNavigation.StartDateOrder,
+                    ImageOrder = c.IdOrderNavigation.ImageOrder,
+                    StatusOrder = c.IdStatusNavigation.NameStatus,
+                    TotalPriceOrder = c.IdOrderNavigation.TotalPriceOrder,
+                    DateOrderHistory = c.DateOrderHistory
+                }).GroupBy(c => c.IdOrder)
                 .Select(group => group.OrderByDescending(c => c.DateOrderHistory).First())
                 .ToList();
 
-            if (orders.Count == null)
-            {
-                return NotFound();
-            }
-            System.Console.WriteLine(orders);
-            var ordersDTO = orders
+            //esta es otra forma de hacer la consulta mediante join y tambien es funcional
+            /* var orders = _context.OrderHistories
+                  .Where(c => c.IdOrderNavigation.IdClientNavigation.IdClient == idClient)
+                  .Join(
+                      _context.Orders,
+                      orderHistory => orderHistory.IdOrder,
+                      order => order.IdOrder,
+                      (orderHistory, order) => new { OrderHistory = orderHistory, Order = order }
+                  )
+                  .Join(
+                      _context.Statuses,
+                      combined => combined.OrderHistory.IdStatus,
+                      status => status.IdStatus,
+                      (combined, status) => new
+                      {
+                          IdOrder = combined.OrderHistory.IdOrder,
+                          StartDateOrder = combined.Order.StartDateOrder,
+                          ImageOrder = combined.Order.ImageOrder,
+                          StatusOrder = status.NameStatus,
+                          TotalPriceOrder = combined.Order.TotalPriceOrder,
+                          DateOrderHistory = combined.OrderHistory.DateOrderHistory
+                      })
+                  .GroupBy(c => c.IdOrder)
+                  .Select(group => group.OrderByDescending(c => c.DateOrderHistory).First())
+                  .ToList();*/
+            return Ok(orders);
+        }
+
+
+
+
+        [HttpGet]
+        [Route("client/Order")]
+        public async Task<ActionResult<IEnumerable<GetOrderDTO>>> GetOrderHistoriesForOrder(int idOrder)
+        {
+            var orders = _context.OrderHistories
+                .Where(c => c.IdOrderNavigation.IdOrder == idOrder)
                 .Select(c => new GetOrderDTO
                 {
-                    IdOrder = _context.OrderHistories.FirstOrDefault(v => v.IdOrder == c.IdOrder).IdOrder,
-                    StartDateOrder = _context.OrderHistories.FirstOrDefault(v => v.IdOrderNavigation.StartDateOrder == c.IdOrderNavigation.StartDateOrder).IdOrderNavigation.StartDateOrder,
-                    ImageOrder = _context.OrderHistories.FirstOrDefault(v => v.IdOrderNavigation.ImageOrder == c.IdOrderNavigation.ImageOrder).IdOrderNavigation.ImageOrder,
-                    StatusOrder = _context.OrderHistories.FirstOrDefault(v => v.IdStatusNavigation.NameStatus == c.IdStatusNavigation.NameStatus).IdStatusNavigation.NameStatus,
-                    TotalPriceOrder = _context.OrderHistories.FirstOrDefault(v => v.IdOrderNavigation.TotalPriceOrder == c.IdOrderNavigation.TotalPriceOrder).IdOrderNavigation.TotalPriceOrder,
-                }).ToList();
-
-
-            return Ok(ordersDTO);
+                    IdOrder = c.IdOrder,
+                    IdClient = c.IdOrderNavigation.IdClient,
+                    StatusOrder = c.IdStatusNavigation.NameStatus,
+                    DateOrderHistory = c.DateOrderHistory
+                })
+                .ToList();
+            return Ok(orders);
         }
+
 
 
 
@@ -181,7 +223,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
 
-      
+
 
         /*  [HttpGet("{id}")]
           public async Task<ActionResult<OrderHistory>> GetOrderHistory(int id)
