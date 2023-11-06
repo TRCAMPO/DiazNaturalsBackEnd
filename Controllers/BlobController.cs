@@ -65,12 +65,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
         [HttpGet]
-        [Route("proof")]
+        [Route("proof/{imageName}")]
         [Authorize]
         public async Task<IActionResult> GetImageProofPaymet(string imageName)
         {
             var imageStream = await _firebaseStorageService.GetImageProofAsync(imageName);
-
             if (imageStream == null) { return NotFound(); }
             return File(imageStream, "image/png");
         }
