@@ -77,13 +77,22 @@ namespace BACK_END_DIAZNATURALS.Controllers
             switch (id)
             {
                 case 1:
-                    getStatusDTO = getStatusNext(2, 5);
+                    getStatusDTO = getStatusNext(1,2, 5);
                     break;
                 case 2:
-                    getStatusDTO = getStatusNext(3);
+                    getStatusDTO = getStatusNext(2, 3);
                     break;
                 case 3:
+                    getStatusDTO = getStatusNext(3, 4);
+                    break;
+                case 4:
                     getStatusDTO = getStatusNext(4);
+                    break;
+                case 5:
+                    getStatusDTO = getStatusNext(5);
+                    break;
+                case 6:
+                    getStatusDTO = getStatusNext(6);
                     break;
             }
             if (getStatusDTO == null) return NotFound();
@@ -91,10 +100,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
 
-        private List<GetStatusDTO> getStatusNext(int idStatus, int idStatus2)
+        private List<GetStatusDTO> getStatusNext(int actual, int idStatus, int idStatus2)
         {
             var getStatusDTO = _context.Statuses
-                        .Where(c => c.IdStatus == idStatus || c.IdStatus == idStatus2)
+                        .Where(c => c.IdStatus== actual || c.IdStatus == idStatus || c.IdStatus == idStatus2 )
                         .Select(p => new GetStatusDTO
                         {
                             IdStatus = p.IdStatus,
@@ -105,10 +114,25 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
 
-        private List<GetStatusDTO> getStatusNext(int idStatus)
+        private List<GetStatusDTO> getStatusNext(int actual, int idStatus)
         {
             var getStatusDTO = _context.Statuses
-                        .Where(c => c.IdStatus == idStatus)
+                        .Where(c => c.IdStatus == actual || c.IdStatus == idStatus)
+                        .Select(p => new GetStatusDTO
+                        {
+                            IdStatus = p.IdStatus,
+                            NameStatus = p.NameStatus,
+                        }).ToList();
+
+            return getStatusDTO;
+        }
+
+
+
+        private List<GetStatusDTO> getStatusNext(int actual)
+        {
+            var getStatusDTO = _context.Statuses
+                        .Where(c => c.IdStatus == actual)
                         .Select(p => new GetStatusDTO
                         {
                             IdStatus = p.IdStatus,
