@@ -177,9 +177,39 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
 
 
+        /* [HttpGet()]
+         [Route("ValidateQuantity")]
+         [Authorize]
+         public IActionResult GetValidateQuantityProduct(string search, string suppliers, string presentation, int quantityProduct)
+         {
+             if (_context.Products == null || search == null || suppliers == null || presentation == null) return BadRequest();
+             ProductSearchDTO productSearch = new ProductSearchDTO
+             {
+                 presentation = presentation,
+                 suppliers = suppliers,
+                 search = search,
+             };
+             Product p = SearchProduct(productSearch);
+             if (p == null) return NotFound();
+             if (!p.IsActiveProduct) return NotFound();
+             if (p.QuantityProduct < quantityProduct)
+             {
+                 return StatusCode(StatusCodes.Status400BadRequest, new { quantity = "Cantidad insuficiente", nameProduct = search, supplierProduct = suppliers, presentation = presentation });
+             }
+             else if (p.QuantityProduct >= quantityProduct)
+             {
+                 return StatusCode(StatusCodes.Status200OK, new { quantity = "Cantidad suficiente", nameProduct = search, supplierProduct = suppliers, presentation = presentation });
+             }
+
+             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Error interno del servidor" });
+         }*/
+
+
+
+
         [HttpGet()]
         [Route("ValidateQuantity")]
-        [Authorize]
+  
         public IActionResult GetValidateQuantityProduct(string search, string suppliers, string presentation, int quantityProduct)
         {
             if (_context.Products == null || search == null || suppliers == null || presentation == null) return BadRequest();

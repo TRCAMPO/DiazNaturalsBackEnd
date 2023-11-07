@@ -217,13 +217,56 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 IdStatus = status.IdStatus,
                 DateOrderHistory = orderDTO.DateOrderHistory,
             };
+            if(orderDTO.NameStatus == "Despachado")
+            {
+                SearchOrder(orderDTO.IdOrder);
+            }
             _context.OrderHistories.Add(orderHistory);
             await _context.SaveChangesAsync();
             return Ok();
         }
 
+        private void SearchOrder(int idOrder)
+         {
+             List<Product> products = new List<Product>();
+             var order = _context.Carts
+                .Include(c => c.IdProductNavigation)
+        .Include(c => c.IdProductNavigation.IdPresentationNavigation)
+        .Include(c => c.IdProductNavigation.IdSupplierNavigation)
+                 .Where(i=> i.IdOrder == idOrder)
+                 .ToList();
+             order.ForEach(o =>
+             {
+                 var p = new ProductSearchDTO
+                 {
+                     search = o.IdProductNavigation.NameProduct,
+                     presentation = o.IdProductNavigation.IdPresentationNavigation.NamePresentation,
+                     suppliers = o.IdProductNavigation.IdSupplierNavigation.NameSupplier
+                 };
+                 products.Add(SearchProduct(p));
 
+             });
+             products.ForEach(o =>
+             {
+                 o.QuantityProduct -= _context.Carts.FirstOrDefault(i => i.IdOrder == idOrder).QuantityProductCart;
+             });
+             foreach (var productToUpdate in products)
+             {
+                 _context.Entry(productToUpdate).State = EntityState.Modified;
+             }
 
+         }
+             private Product SearchProduct(ProductSearchDTO productSearchDTO)
+         {
+             var supplier = _context.Suppliers.FirstOrDefault(p => p.NameSupplier == productSearchDTO.suppliers);
+             var presentation = _context.Presentations.FirstOrDefault(p => p.NamePresentation == productSearchDTO.presentation);
+             if (presentation == null || supplier == null) return null;
+             var product = _context.Products
+              .FirstOrDefault(p => p.NameProduct == productSearchDTO.search &&
+                                   p.IdSupplier == supplier.IdSupplier &&
+                                   p.IdPresentation == presentation.IdPresentation);
+             return product;
+         }
 
         /*  [HttpGet("{id}")]
           public async Task<ActionResult<OrderHistory>> GetOrderHistory(int id)
@@ -300,25 +343,25 @@ namespace BACK_END_DIAZNATURALS.Controllers
               return CreatedAtAction("GetOrderHistory", new { id = orderHistory.IdOrder }, orderHistory);
           }*/
 
-        /* [HttpDelete("{id}")]
-         public async Task<IActionResult> DeleteOrderHistory(int id)
-         {
-             if (_context.OrderHistories == null)
-             {
-                 return NotFound();
-             }
-             var orderHistory = await _context.OrderHistories.FindAsync(id);
-             if (orderHistory == null)
-             {
-                 return NotFound();
-             }
 
-             _context.OrderHistories.Remove(orderHistory);
-             await _context.SaveChangesAsync();
+        [HttpDelete("{idOrder}/{idStatus}")]
+        public async Task<IActionResult> DeleteOrderHistory(int idOrder, int idStatus)
+        {
+            if (_context.OrderHistories == null)
+            {
+                return NotFound();
+            }
+            var orderHistory = _context.OrderHistories.FirstOrDefault(c => c.IdOrder == idOrder & c.IdStatus == idStatus);
+            if (orderHistory == null)
+            {
+                return NotFound();
+            }
 
-             return NoContent();
-         }*/
+            _context.OrderHistories.Remove(orderHistory);
+            await _context.SaveChangesAsync();
 
+            return NoContent();
+        }
         private bool OrderHistoryExists(int id)
         {
             return (_context.OrderHistories?.Any(e => e.IdOrder == id)).GetValueOrDefault();
