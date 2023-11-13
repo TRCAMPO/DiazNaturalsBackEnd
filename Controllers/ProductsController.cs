@@ -9,6 +9,7 @@ using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -81,6 +82,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
               })
               .ToList();
             return Ok(products);
+            Log.Information("o en:");
         }
 
 
@@ -379,6 +381,41 @@ namespace BACK_END_DIAZNATURALS.Controllers
             return NoContent();
         }
 
+        [HttpPatch]
+        [Route("UpdateQuantity")]
+        [Authorize]
+        public async Task<ActionResult> PatchUpdateQuantity(int quantity, ProductSearchDTO productSearchDTO)
+        {
+            if (_context.Products == null || productSearchDTO== null|| productSearchDTO.search == null || productSearchDTO.suppliers == null || productSearchDTO.presentation == null || quantity<0) return BadRequest();
+
+            Product p = SearchProduct(productSearchDTO);
+            if (p == null) return NotFound();
+            if (!p.IsActiveProduct) return NotFound();
+
+            p.QuantityProduct += quantity;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                if (quantity > 0)
+                {
+                    var entry = new Entry()
+                    {
+                        DateEntry = DateTime.Now,
+                        IdProduct = p.IdProduct,
+                        QuantityProductEntry = quantity
+                    };
+                    _context.Entries.Add(entry);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProductExists(p.IdProduct)) return NotFound();
+                else { throw; }
+            }
+            return NoContent();
+        }
 
 
 

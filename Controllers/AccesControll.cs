@@ -1,4 +1,5 @@
-﻿using BACK_END_DIAZNATURALS.DTO;
+﻿using Azure.Core;
+using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Encrypt;
 using BACK_END_DIAZNATURALS.Jwt;
 using BACK_END_DIAZNATURALS.Model;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -45,12 +47,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
                 if (credential == null)
                 {
+                    Log.Warning($"Intento de acceso con credenciales nulas para {request.email}");
                     return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
                 }
 
                 var hash = HashEncryption.CheckHash(request.password, credential.PasswordCredential, credential.SaltCredential);
                 if (!hash)
                 {
+                    Log.Warning($"Intento de acceso con credenciales invalidas para {request.email}");
                     return StatusCode(StatusCodes.Status401Unauthorized, new { token = "" });
                 }
 
@@ -82,7 +86,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                     expires: DateTime.Now.AddMinutes(60),
                     signingCredentials: singIn
                 );
-
+                Log.Information($"Acceso desde el usuario {request.email}");
                 return StatusCode(StatusCodes.Status200OK, new { token = new JwtSecurityTokenHandler().WriteToken(token), typeUser = "admin" });
             }
             else if (client != null)
@@ -91,12 +95,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
                 if (credential == null)
                 {
+                    Log.Warning($"Intento de acceso con credenciales nulas para {request.email}");
                     return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
                 }
 
                 var hash = HashEncryption.CheckHash(request.password, credential.PasswordCredential, credential.SaltCredential);
                 if (!hash)
                 {
+                    Log.Warning($"Intento de acceso con credenciales invalidas para {request.email}");
                     return StatusCode(StatusCodes.Status401Unauthorized, new { token = "" });
                 }
 
@@ -128,9 +134,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
                     expires: DateTime.Now.AddMinutes(60),
                     signingCredentials: singIn
                 );
-
+                Log.Information($"Acceso desde el usuario {request.email}");
                 return StatusCode(StatusCodes.Status200OK, new { token = new JwtSecurityTokenHandler().WriteToken(token), typeUser = "client" });
             }
+            Log.Information($"Intento de acceso con el correo no registrado {request.email}");
             return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
         }
 
@@ -149,7 +156,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 var mailAddress = new System.Net.Mail.MailAddress(email.Email);
             }
-            catch { return BadRequest("Email no válido"); }
+            catch {
+                Log.Warning($"Intento de acceso con formato de correo invalido {email}"); 
+                return BadRequest("Email no válido"); }
 
             if (_context.Administrators.Any(i => i.EmailAdministrator == email.Email) || _context.Clients.Any(i => i.EmailClient == email.Email))
             {
@@ -158,11 +167,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 {
                     EmailService emailService = new EmailService();
                     await emailService.SendEmail(email.Email, "Recuperación de contraseña DiazNaturals", code);
+                    Log.Warning($"Solicitud de recuperacion de contraseña para el correo {email}");
                     return Ok();
                 }
                 catch { return BadRequest(); }
             }
-            else { return NotFound("Email no encontrado"); }
+            else {
+                Log.Warning($"Solicitud de recuperacion de contraseña para el correo NO REGISTRADO {email}"); 
+                return NotFound("Email no encontrado"); }
         }
 
 
@@ -183,11 +195,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             if ((emailExists && codeValidator.Code == cachedCode))
             {
+                Log.Warning($"Validacion exitosa de codigo de recuperacion para el correo  {codeValidator.Email}");
                 return Ok(new { exists = emailExists });
             } else if((emailExistsClient && codeValidator.Code == cachedCode))
             {
+                Log.Warning($"Validacion exitosa de codigo de recuperacion para el correo  {codeValidator.Email}");
                 return Ok(new { exists = emailExistsClient });
             }
+            Log.Warning($"Validacion INCORRECTA de codigo de recuperacion para el correo  {codeValidator.Email}");
             return StatusCode(StatusCodes.Status404NotFound, new { token = cachedCode });
         }
 
@@ -217,6 +232,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             if (credential == null)
             {
+                Log.Warning($"Intento de cambio de contraseña para el correo no registrado {newCredential.email}");
                 return NotFound();
             }
 
@@ -225,6 +241,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             credential.SaltCredential = hash.HashAlgorithm;
 
             await _context.SaveChangesAsync();
+            Log.Warning($"Cambio de contraseña para el correo  {newCredential.email}");
             return Ok();
         }
 

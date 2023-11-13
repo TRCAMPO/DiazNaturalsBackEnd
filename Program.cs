@@ -8,7 +8,9 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-
+using Serilog;
+using Serilog.Sinks.File;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -74,9 +76,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes((builder.Configuration["Jwt:Key"])))
     };
 });
+builder.Services.AddScoped<FileListService>(); // Asegúrate de tener esta línea en tu método ConfigureServices de Startup.cs
 
-
-
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Minute)
+    .CreateLogger();
+Log.Information("Corriendo en:");
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
