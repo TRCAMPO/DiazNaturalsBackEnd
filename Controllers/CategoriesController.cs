@@ -3,6 +3,7 @@ using BACK_END_DIAZNATURALS.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -63,12 +64,17 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (id != categoryDTO.IdCategory) return BadRequest();
             var category= _context.Categories.FirstOrDefault(i=>i.IdCategory == id);
-            if(category == null) return NotFound(); 
+            if (category == null)
+            {
+                Log.Information($"Intento de cambio del nombre de una categoria que no existe {categoryDTO.NameCategory}");
+                return NotFound();
+            }
             categoryDTO.NameCategory = categoryDTO.NameCategory;
             _context.Entry(category).State = EntityState.Modified;
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information($"Se cambio el nombre de la categoria {categoryDTO.NameCategory}");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -96,6 +102,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             };
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
+            Log.Information($"Se registro la categoria {categoryDTO.NameCategory}");
             return CreatedAtAction("GetCategory", new { id = category.IdCategory }, category);
         }
 

@@ -1,6 +1,8 @@
-﻿using BACK_END_DIAZNATURALS.Services;
+﻿using Azure.Core;
+using BACK_END_DIAZNATURALS.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -30,6 +32,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             string url = await _firebaseStorageService.ImageUploadAsync(file, fileName);
             string[] urlParts = url.Split('/');
             string imageName = urlParts[urlParts.Length - 1];
+            Log.Information($"Se realiza el cargue de la imagen de producto {fileName}");
             return Ok(new { FileName = imageName });
         }
 
@@ -58,6 +61,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             string url = await _firebaseStorageService.ImageUploadProofAsync(file, fileName);
             string[] urlParts = url.Split('/');
             string imageName = urlParts[urlParts.Length - 1];
+            Log.Information($"Se realiza el cargue del archivo de pago {fileName}");
             return Ok(new { FileName = imageName });
         }
 

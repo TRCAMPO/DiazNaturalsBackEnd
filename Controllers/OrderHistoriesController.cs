@@ -194,12 +194,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Orders == null)
             {
+                Log.Error($"Error en la conexion con la base de datos para la tabla Order");
                 return Problem("Entity set 'DiazNaturalsContext.Orders' is null.");
             }
             var status = _context.Statuses.FirstOrDefault(o => o.NameStatus == orderDTO.NameStatus);
             var or = _context.Orders.FirstOrDefault(o => o.IdOrder == orderDTO.IdOrder);
             if (status == null || or == null)
             {
+                Log.Error("Error en la peticion para registrar un nuevo historial de una orden de compra: {@Order}", orderDTO);
                 return NotFound();
             }
             var order = _context.OrderHistories
@@ -209,6 +211,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             if (order != null)
             {
+                Log.Error("Error orden: {@Order} no encontrada", orderDTO);
                 return Conflict();
             }
 
@@ -218,56 +221,59 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 IdStatus = status.IdStatus,
                 DateOrderHistory = orderDTO.DateOrderHistory,
             };
-            if(orderDTO.NameStatus == "Despachado")
+            if (orderDTO.NameStatus == "Despachado")
             {
                 SearchOrder(orderDTO.IdOrder);
             }
             _context.OrderHistories.Add(orderHistory);
             await _context.SaveChangesAsync();
+            Log.Warning($"Nuevo historial agregado para la orden: {orderHistory.IdStatus}");
             return Ok();
         }
 
         private void SearchOrder(int idOrder)
-         {
-             List<Product> products = new List<Product>();
-             var order = _context.Carts
+        {
+            List<Product> products = new List<Product>();
+            var order = _context.Carts
                 .Include(c => c.IdProductNavigation)
-        .Include(c => c.IdProductNavigation.IdPresentationNavigation)
-        .Include(c => c.IdProductNavigation.IdSupplierNavigation)
-                 .Where(i=> i.IdOrder == idOrder)
-                 .ToList();
-             order.ForEach(o =>
-             {
-                 var p = new ProductSearchDTO
-                 {
-                     search = o.IdProductNavigation.NameProduct,
-                     presentation = o.IdProductNavigation.IdPresentationNavigation.NamePresentation,
-                     suppliers = o.IdProductNavigation.IdSupplierNavigation.NameSupplier
-                 };
-                 products.Add(SearchProduct(p));
+                .Include(c => c.IdProductNavigation.IdPresentationNavigation)
+                .Include(c => c.IdProductNavigation.IdSupplierNavigation)
+                .Where(i => i.IdOrder == idOrder)
+                .ToList();
+            order.ForEach(o =>
+            {
+                var p = new ProductSearchDTO
+                {
+                    search = o.IdProductNavigation.NameProduct,
+                    presentation = o.IdProductNavigation.IdPresentationNavigation.NamePresentation,
+                    suppliers = o.IdProductNavigation.IdSupplierNavigation.NameSupplier
+                };
+                products.Add(SearchProduct(p));
 
-             });
-             products.ForEach(o =>
-             {
-                 o.QuantityProduct -= _context.Carts.FirstOrDefault(i => i.IdOrder == idOrder).QuantityProductCart;
-             });
-             foreach (var productToUpdate in products)
-             {
-                 _context.Entry(productToUpdate).State = EntityState.Modified;
-             }
+            });
+            products.ForEach(o =>
+            {
+                int quantity= _context.Carts.FirstOrDefault(i => i.IdOrder == idOrder).QuantityProductCart;
+                Log.Information($"Registro de cantidad saliente del producto: {o.NameProduct}, numero de unidades: {quantity}");
+                o.QuantityProduct -= quantity;
+            });
+            foreach (var productToUpdate in products)
+            {
+                _context.Entry(productToUpdate).State = EntityState.Modified;
+            }
 
-         }
-             private Product SearchProduct(ProductSearchDTO productSearchDTO)
-         {
-             var supplier = _context.Suppliers.FirstOrDefault(p => p.NameSupplier == productSearchDTO.suppliers);
-             var presentation = _context.Presentations.FirstOrDefault(p => p.NamePresentation == productSearchDTO.presentation);
-             if (presentation == null || supplier == null) return null;
-             var product = _context.Products
-              .FirstOrDefault(p => p.NameProduct == productSearchDTO.search &&
-                                   p.IdSupplier == supplier.IdSupplier &&
-                                   p.IdPresentation == presentation.IdPresentation);
-             return product;
-         }
+        }
+        private Product SearchProduct(ProductSearchDTO productSearchDTO)
+        {
+            var supplier = _context.Suppliers.FirstOrDefault(p => p.NameSupplier == productSearchDTO.suppliers);
+            var presentation = _context.Presentations.FirstOrDefault(p => p.NamePresentation == productSearchDTO.presentation);
+            if (presentation == null || supplier == null) return null;
+            var product = _context.Products
+             .FirstOrDefault(p => p.NameProduct == productSearchDTO.search &&
+                                  p.IdSupplier == supplier.IdSupplier &&
+                                  p.IdPresentation == presentation.IdPresentation);
+            return product;
+        }
 
         /*  [HttpGet("{id}")]
           public async Task<ActionResult<OrderHistory>> GetOrderHistory(int id)

@@ -4,6 +4,7 @@ using BACK_END_DIAZNATURALS.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -12,8 +13,6 @@ namespace BACK_END_DIAZNATURALS.Controllers
     public class AdministratorsController : ControllerBase
     {
         private readonly DiazNaturalsContext _context;
-
-
 
         public AdministratorsController(DiazNaturalsContext context)
         {
@@ -72,7 +71,12 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if(administratorDTO == null)return NotFound();
             var administrator= _context.Administrators.FirstOrDefault(i=>i.EmailAdministrator == email);
-            if (administrator == null) return NotFound(administratorDTO);
+            if (administrator == null)
+            {
+                Log.Warning($"Intento de cambio de nombre de usuario mediante el correo  {administratorDTO.EmailAdministrator}, al nombre {administratorDTO.NameAdministrator}");
+                return NotFound(administratorDTO);
+            }
+
             administrator.EmailAdministrator = administratorDTO.EmailAdministrator;
             administrator.NameAdministrator = administratorDTO.NameAdministrator;
 
@@ -81,6 +85,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Warning($"Cambio de nombre de usuario mediante el correo  {administratorDTO.EmailAdministrator}, al nombre {administratorDTO.NameAdministrator}");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -119,6 +124,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             };
             _context.Administrators.Add(auxAdministrator);
             await _context.SaveChangesAsync();
+            Log.Warning($"Se registra un nuevo administrador con el correo {administrator.EmailAdministrator}, y el nombre {administrator.NameAdministrator}");
             return CreatedAtAction("GetAdministrator", new { id = auxAdministrator.IdAdministrator }, administrator);
         }
 
