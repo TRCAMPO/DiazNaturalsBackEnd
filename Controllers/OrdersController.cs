@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -56,16 +57,22 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (id != orderDTO.IdOrder)
             {
+                Log.Warning($"Solicitud incorrecta para editar order: {id}, error {BadRequest().StatusCode} ");
                 return BadRequest();
             }
 
             var order =  _context.Orders.FirstOrDefault(o => o.IdOrder == id);
-            if(order == null) { return NotFound(); }
+            if(order == null) {
+                Log.Warning($"No se encontro la orden : {id}, error {NotFound().StatusCode}, para poder editarla ");
+                return NotFound(); 
+            }
             var c = _context.Orders.Where(c => c.IdOrder != order.IdOrder)
                 .Where(c => c.ImageOrder != "SinComprobanteDePago.jpeg")
                 .Any(z => z.ImageOrder == orderDTO.ImageOrder);
 
-            if (c) { return Conflict(); }
+            if (c) {
+                Log.Warning($"Conflicto en los nuevos datos a agregar a la orden: {id}, error {Conflict().StatusCode} ");
+                return Conflict(); }
             order.ImageOrder = orderDTO.ImageOrder;
 
             _context.Entry(order).State = EntityState.Modified;
@@ -73,11 +80,13 @@ namespace BACK_END_DIAZNATURALS.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information("Información de orden actualizada: {@Order}", orderDTO);
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!OrderExists(id))
                 {
+                    Log.Warning($"No se encontro la orden : {id}, error {NotFound().StatusCode}, para poder editarla ");
                     return NotFound();
                 }
                 else
@@ -96,11 +105,16 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Orders == null)
             {
+
                 return Problem("Entity set 'DiazNaturalsContext.Orders' is null.");
             }
             bool checkClient = _context.Clients.Any(c => c.IdClient == orderDTO.IdClient);
 
-            if (!checkClient) { return NoContent(); };
+            if (!checkClient) {
+                Log.Warning($"No se encontro la el cliente: {orderDTO.IdClient}, error {NotFound().StatusCode}, para" +
+                    $" asignarle nueva orden de compra");
+                return NotFound(); 
+            };
 
             var order = new Order
             {
@@ -113,13 +127,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
-
+            Log.Information("Orden de compra agregada: {@Order}", orderDTO);
             List<Cart> carts = new List<Cart>();
             foreach (var aux in orderDTO.AddCart)
             {
                 bool checkProduct = _context.Products.Any(c => c.IdProduct == aux.ProductId);
                 if (!checkClient)
                 {
+                    Log.Warning($"No se encontro el producto : {aux.ProductId}, error {NotFound().StatusCode}, para agregar producto de la orden {order.IdOrder}");
                     _context.Orders.Remove(order);
                     return NoContent();
                 }
@@ -145,6 +160,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             _context.OrderHistories.Add(orderHistory);
             await _context.SaveChangesAsync();
+            Log.Warning($"Nuevo historial agregado para la orden: {orderHistory.IdStatus}");
             return Ok();
         }
 

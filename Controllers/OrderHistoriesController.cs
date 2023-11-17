@@ -52,7 +52,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                     TotalPriceOrder = c.IdOrderNavigation.TotalPriceOrder,
                     DateOrderHistory = c.DateOrderHistory
                 }).ToList();
-            Log.Information("Usanfo en orderes hsitory en:");
+  
             return Ok(orders);
         }
 
