@@ -77,13 +77,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 builder.Services.AddScoped<FileListService>(); // Asegúrate de tener esta línea en tu método ConfigureServices de Startup.cs
-
+DateTime fecha= DateTime.Now;
+string fechaFormateada = fecha.ToString("yyyy-MM-dd  HH-mm-ss  ") +".txt";
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Minute)
+    .WriteTo.File("logs/" + fechaFormateada, rollingInterval: RollingInterval.Minute)
     .CreateLogger();
 Log.Information("Corriendo en:");
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });

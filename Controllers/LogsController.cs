@@ -5,8 +5,8 @@ using System.IO;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("[controller]")]
     public class LogsController : ControllerBase
     {
         private readonly FileListService _fileListService;
@@ -16,11 +16,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
             _fileListService = fileListService;
         }
 
-        [HttpGet("descargarLogs/{name}")]
-        public IActionResult DescargarLogs(string name)
+        [HttpGet("DownloadLogs/{name}")]
+        public IActionResult DownloadLogs(string name)
         {
-            // Ruta al archivo de logs
-            var filePath = "logs/"+name; // Asegúrate de proporcionar la ruta correcta
+           
+            var filePath = "logs/"+name; 
             string rutaCopiaLogs = "logs/log_copia.txt";
             if (!System.IO.File.Exists(filePath))
             {
@@ -30,7 +30,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 System.IO.File.Copy(filePath, rutaCopiaLogs, true);
             }
-            // Lee el archivo y prepara la descarga como un FileResult
+            
             var fileBytes = System.IO.File.ReadAllBytes(rutaCopiaLogs);
             return File(fileBytes, "text/plain", "log.txt");
 
@@ -38,7 +38,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [HttpGet]
         public IActionResult GetFileList()
         {
-            var folderPath = "logs"; // Ruta de la carpeta en tu proyecto
+            var folderPath = "logs"; 
             var fileList = _fileListService.GetFileList(folderPath);
             return Ok(fileList);
         }

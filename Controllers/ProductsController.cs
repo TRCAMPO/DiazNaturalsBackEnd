@@ -288,11 +288,19 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<IActionResult> PutProduct(int id, ProductDTO productDTO)
         {
             var product = _context.Products.FirstOrDefault(p => p.IdProduct == id);
-            if (product == null || product == null || !product.IsActiveProduct) return NotFound();
+            if (product == null || product == null || !product.IsActiveProduct)
+            {
+                Log.Information($"No se encontro el producto: {id}, cod error {NotFound().StatusCode}");
+                return NotFound();
+            }
             var suplier = _context.Suppliers.FirstOrDefault(i => i.NameSupplier == productDTO.supplier);
             var presentation = _context.Presentations.FirstOrDefault(i => i.NamePresentation == productDTO.presentation);
             var category = _context.Categories.FirstOrDefault(i => i.NameCategory == productDTO.category);
-            if (suplier == null || presentation == null || category == null) return NotFound();
+            if (suplier == null || presentation == null || category == null) 
+            {
+                Log.Information($"No se encontro el producto: {id}, cod error {NotFound().StatusCode}");
+                return NotFound();
+            } 
             if (ProductsExistsEdit(suplier.IdSupplier, presentation.IdPresentation, productDTO.name, productDTO.IdProduct)) return Conflict("Ya existe un producto con el nombre \"" + productDTO.name + "\" el proveedor \"" + productDTO.supplier + "\" y la presentacion \"" + productDTO.presentation + "\".");
             product.NameProduct = productDTO.name;
             product.DescriptionProduct = productDTO.description;
@@ -306,6 +314,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information("Se modifico el producto con id: {@id}, datos modificados {@Product}", id,productDTO + $"cod error {NotFound().StatusCode}");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -323,12 +332,20 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<ActionResult<Product>> PostProduct(ProductAddDTO productDTO)
         {
             if (_context.Products == null || productDTO == null) return Problem("Entity set 'DiazNaturalsContext.Products'  is null.");
-            if (productDTO.supplier == null || productDTO.presentation == null || productDTO.name == null || productDTO.category==null) return NotFound("Existen parametros nulos en la peticion");
+            if (productDTO.supplier == null || productDTO.presentation == null || productDTO.name == null || productDTO.category == null) 
+            {
+                Log.Error($"Existen parametros nulos dentro de la solicitud para agregar producto, cod error {BadRequest().StatusCode}");
+                return NotFound("Existen parametros nulos en la peticion"); 
+            }
 
             var suplier = _context.Suppliers.FirstOrDefault(i => i.NameSupplier == productDTO.supplier);
             var presentation = _context.Presentations.FirstOrDefault(i => i.NamePresentation == productDTO.presentation);
             var category = _context.Categories.FirstOrDefault(i => i.NameCategory == productDTO.category);
-            if (suplier == null || presentation == null || category == null) return NotFound();
+            if (suplier == null || presentation == null || category == null)
+            {
+                Log.Error($"el proveedor, la presentacion o la categoria solicitados no existen: {NotFound().StatusCode}");
+                return NotFound();
+            }
             if(ProductsExists(suplier.IdSupplier, presentation.IdPresentation, productDTO.name))return Conflict("Ya existe un producto con el nombre \""+ productDTO.name + "\" el proveedor \"" + productDTO.supplier+ "\" y la presentacion \"" + productDTO.presentation+ "\".");
             var product = new Product
             {
@@ -344,6 +361,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             };
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
+            Log.Information($"Se agrego el producto identificado con el id {product.IdProduct}");
             if (product.QuantityProduct > 0)
             {
                 var entry = new Entry()
@@ -354,6 +372,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 };
                 _context.Entries.Add(entry);
                 await _context.SaveChangesAsync();
+                Log.Information($"Se agrego la entrada identificada con el id {entry.IdEntry}");
             }
             return Ok();
         }
@@ -367,11 +386,16 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<ActionResult> Patch([Required] int id, ProductDeleteDTO productDTO)
         {
             var product = _context.Products.FirstOrDefault(i => i.IdProduct == productDTO.idProduct);
-            if (productDTO == null || product == null) return NotFound();
+            if (productDTO == null || product == null)
+            {
+                Log.Warning($"Error al intentar editar el estado del producto {id}, cod error {NotFound().StatusCode}");
+                return NotFound();
+            }
             product.IsActiveProduct = productDTO.isActive;
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information($"Se modifico el estado del producto {product.IdProduct}");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -386,17 +410,26 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult> PatchUpdateQuantity(int quantity, ProductSearchDTO productSearchDTO)
         {
-            if (_context.Products == null || productSearchDTO== null|| productSearchDTO.search == null || productSearchDTO.suppliers == null || productSearchDTO.presentation == null || quantity<0) return BadRequest();
+            if (_context.Products == null || productSearchDTO == null || productSearchDTO.search == null || productSearchDTO.suppliers == null || productSearchDTO.presentation == null || quantity < 0)
+            {
+                Log.Error($"el proveedor, la presentacion o la categoria solicitados no existen: {BadRequest().StatusCode}");
+                return BadRequest();
+            }
 
             Product p = SearchProduct(productSearchDTO);
             if (p == null) return NotFound();
-            if (!p.IsActiveProduct) return NotFound();
+            if (!p.IsActiveProduct)
+            {
+                Log.Error($"El producto {p.IdProduct} no se encuentra activo: {NotFound().StatusCode}");
+                return NotFound();
+            }
 
             p.QuantityProduct += quantity;
 
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information($"Se agregaron {quantity} unidades para el producto {p.IdProduct}");
                 if (quantity > 0)
                 {
                     var entry = new Entry()
@@ -407,6 +440,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                     };
                     _context.Entries.Add(entry);
                     await _context.SaveChangesAsync();
+                    Log.Information($"Se agrego una nueva entrada de {quantity} unidades para el producto {p.IdProduct}");
                 }
             }
             catch (DbUpdateConcurrencyException)

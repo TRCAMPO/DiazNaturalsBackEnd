@@ -270,15 +270,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 return Problem("Entity set 'DiazNaturalsContext.Clients'  is null.");
             }
             if (ClientNameExists(clientDTO.nameClient)) {
-                Log.Warning($"Se innteto agregar un cliente cuyo nombre ya existe en la base de datos: {clientDTO.nameClient}");
+                Log.Warning($"Se intento agregar un cliente cuyo nombre ya existe en la base de datos: {clientDTO.nameClient}");
                 return Conflict("El nombre de cliente ya existe"); 
             }
             if (ClientNitExists(clientDTO.nitClient)) {
-                Log.Warning($"Se innteto agregar un cliente cuyo nit ya existe en la base de datos: {clientDTO.nitClient}");
+                Log.Warning($"Se intento agregar un cliente cuyo nit ya existe en la base de datos: {clientDTO.nitClient}");
                 return Conflict("El Nit de cliente ya existe"); 
             }
             if (ClientEmailExists(clientDTO.emailClient)) {
-                Log.Warning($"Se innteto agregar un cliente cuyo correo ya existe en la base de datos: {clientDTO.emailClient}");
+                Log.Warning($"Se intento agregar un cliente cuyo correo ya existe en la base de datos: {clientDTO.emailClient}");
                 return Conflict("El email de cliente ya existe"); 
             }
 

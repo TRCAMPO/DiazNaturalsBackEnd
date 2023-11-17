@@ -9,6 +9,7 @@ using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Google.Apis.Util;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -150,6 +151,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Statuses == null)
             {
+                Log.Information($"Error en el servidor, cod error 500");
                 return Problem("Entity set 'DiazNaturalsContext.Entries'  is null.");
             }
             Status statusAux = new Status
@@ -159,6 +161,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             _context.Statuses.Add(statusAux);
             await _context.SaveChangesAsync();
+            Log.Information($"Se agregaron la categoria {statusAux.IdStatus}");
             return Ok(statusAux);
 
         }
@@ -169,14 +172,23 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [HttpPut]
         public async Task<IActionResult> PutStatus(int id, GetStatusDTO status)
         {
-            if (id != status.IdStatus) return BadRequest();
+            if (id != status.IdStatus)
+            {
+                Log.Error($"Error en los parametros de la aplicacion para editar el estado: {id}");
+                return BadRequest();
+            }
             var statusAux = _context.Statuses.Find(id);
-            if (statusAux == null) return NotFound();
+            if (statusAux == null)
+            {
+                Log.Error($"No se encontro el estado: {id}");
+                return NotFound();
+            }
             statusAux.NameStatus = status.NameStatus;
             _context.Entry(statusAux).State = EntityState.Modified;
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information("Información del estado actualizada: {@Status}", status);
             }
             catch (DbUpdateConcurrencyException)
             {
