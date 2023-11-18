@@ -3,6 +3,7 @@ using BACK_END_DIAZNATURALS.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -25,7 +26,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
         {
-            if (_context.Categories == null) return NotFound();
+            if (_context.Categories == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Categories, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var categoryDto = await _context.Categories
             .Select(c => new CategoryDTO
             {
@@ -42,7 +47,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<CategoryDTO>> GetCategory(int id)
         {
-            if (_context.Categories == null) return NotFound();
+            if (_context.Categories == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Categories, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var category = await _context.Categories.FindAsync(id);
 
             if (category == null) return NotFound();
@@ -61,14 +70,23 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<IActionResult> PutCategory(int id, CategoryDTO categoryDTO)
         {
-            if (id != categoryDTO.IdCategory) return BadRequest();
+            if (id != categoryDTO.IdCategory)
+            {
+                Log.Error($"Error en el contenido de la peticion para editar la categoria, {id}, " + $"cod error {BadRequest().StatusCode}");
+                return BadRequest();
+            }
             var category= _context.Categories.FirstOrDefault(i=>i.IdCategory == id);
-            if(category == null) return NotFound(); 
+            if (category == null)
+            {
+                Log.Information($"Intento de cambio del nombre de una categoria que no existe {categoryDTO.NameCategory}");
+                return NotFound();
+            }
             categoryDTO.NameCategory = categoryDTO.NameCategory;
             _context.Entry(category).State = EntityState.Modified;
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information($"Se cambio el nombre de la categoria {categoryDTO.NameCategory}");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -86,6 +104,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Categories == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Categories, cod error 500, Internal Server error");
                 return Problem("Entity set 'DiazNaturalsContext.Categories'  is null.");
             }
             if (categoryDTO == null) return NoContent();
@@ -96,6 +115,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             };
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
+            Log.Information($"Se registro la categoria {categoryDTO.NameCategory}");
             return CreatedAtAction("GetCategory", new { id = category.IdCategory }, category);
         }
 

@@ -3,6 +3,7 @@ using BACK_END_DIAZNATURALS.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.ComponentModel.DataAnnotations;
 
 namespace BACK_END_DIAZNATURALS.Controllers
@@ -152,14 +153,34 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
         [HttpPut("{idSupplier}")]
         [Authorize]
-        public async Task<IActionResult> PutSupplier([Required] int  idSupplier, SupplierAddDTO supplierDTO)
+        public async Task<IActionResult> PutSupplier([Required] int idSupplier, SupplierAddDTO supplierDTO)
         {
-            if (supplierDTO == null) return BadRequest();
-            if(supplierDTO.NameSupplier==null || supplierDTO.AddressSupplier==null || supplierDTO.EmailSupplier==null || supplierDTO.NitSupplier==null || supplierDTO.PhoneSupplier==null) return BadRequest();
-            if (SupplierNameExistsEdit(supplierDTO.NameSupplier, supplierDTO.IdSupplier)) return Conflict("El Nombre del proveedor \"" + supplierDTO.NameSupplier + "\" ya existe.");
-            if (SupplierNitExistsEdit(supplierDTO.NitSupplier, supplierDTO.IdSupplier)) return Conflict("El Nit del proveedor \"" + supplierDTO.NitSupplier + "\" ya existe.");
+            if (supplierDTO == null)
+            {
+                Log.Error($"Error en el conteido de la peticion para editar el proveedor con id {idSupplier}, cod error {BadRequest().StatusCode}");
+                return BadRequest();
+            }
+            if (supplierDTO.NameSupplier == null || supplierDTO.AddressSupplier == null || supplierDTO.EmailSupplier == null || supplierDTO.NitSupplier == null || supplierDTO.PhoneSupplier == null)
+            {
+                Log.Error($"Existen datos nulos dentro de la peticion para editar el proveedor con id {idSupplier}, cod error {BadRequest().StatusCode}");
+                return BadRequest();
+            }
+            if (SupplierNameExistsEdit(supplierDTO.NameSupplier, supplierDTO.IdSupplier))
+            {
+                Log.Error($"Intenta cambiar el nombre del proveedor con id {idSupplier} a uno que ya existe, cod error {Conflict().StatusCode}");
+                return Conflict("El Nombre del proveedor \"" + supplierDTO.NameSupplier + "\" ya existe.");
+            }
+            if (SupplierNitExistsEdit(supplierDTO.NitSupplier, supplierDTO.IdSupplier))
+            {
+                Log.Error($"Intenta cambiar el nit del proveedor con id {idSupplier} a uno que ya existe, cod error {Conflict().StatusCode}");
+                return Conflict("El Nit del proveedor \"" + supplierDTO.NitSupplier + "\" ya existe.");
+            }
             var supplier = _context.Suppliers.FirstOrDefault(c => c.IdSupplier == idSupplier);
-            if (supplier == null || !supplier.IsActiveSupplier) return NotFound();
+            if (supplier == null || !supplier.IsActiveSupplier)
+            {
+                Log.Error($"No se encontro un porveedor activo con el id {idSupplier}, cod error {NotFound().StatusCode}");
+                return NotFound();
+            }
             supplier.NameSupplier = supplierDTO.NameSupplier;
             supplier.AddressSupplier = supplierDTO.AddressSupplier;
             supplier.EmailSupplier = supplierDTO.EmailSupplier;
@@ -169,6 +190,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information("Se modifico el proveedor con id: {@id}, datos modificados {@Product}", idSupplier, supplierDTO);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -185,10 +207,26 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<Supplier>> PostSupplier(SupplierAddDTO supplierDTO)
         {
-            if (_context.Suppliers == null) return Problem("Entity set 'DiazNaturalsContext.Suppliers'  is null.");
-            if (supplierDTO == null) return BadRequest();
-            if(SupplierNameExists(supplierDTO.NameSupplier))return Conflict("El Nombre del proveedor \""+ supplierDTO.NameSupplier+"\" ya existe.");
-            if(SupplierNitExists(supplierDTO.NitSupplier))return Conflict("El Nit \"" + supplierDTO.NitSupplier + "\" para proveedor ya existe.");
+            if (_context.Suppliers == null)
+            {
+
+                return Problem("Entity set 'DiazNaturalsContext.Suppliers'  is null.");
+            }
+            if (supplierDTO == null)
+            {
+                Log.Error("Error en el contenido de la peticion para agregar el nuevo proveedor, {Supplier} ", supplierDTO+ $"cod error {BadRequest().StatusCode}");
+                return BadRequest();
+            }
+            if (SupplierNameExists(supplierDTO.NameSupplier))
+            {
+                Log.Error($"Intenta agregar un proveedor que ya existe {supplierDTO.NameSupplier}, cod error {Conflict().StatusCode}");
+                return Conflict("El Nombre del proveedor \"" + supplierDTO.NameSupplier + "\" ya existe.");
+            }
+            if (SupplierNitExists(supplierDTO.NitSupplier))
+            {
+                Log.Error($"Intenta agregar un proveedor que ya existe {supplierDTO.NitSupplier}, cod error {Conflict().StatusCode}");
+                return Conflict("El Nit \"" + supplierDTO.NitSupplier + "\" para proveedor ya existe.");
+            }
             var supplier = new Supplier
             {
                 NitSupplier = supplierDTO.NitSupplier,
@@ -203,6 +241,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             {
                 _context.Suppliers.Add(supplier);
                 await _context.SaveChangesAsync();
+                Log.Information("Se agrego el proveedor con id: {@id}, datos modificados {@Supplier}", supplier.IdSupplier, supplierDTO);
             }
             catch
             {
@@ -222,11 +261,16 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             var supplier = _context.Suppliers.FirstOrDefault(i => i.NitSupplier == supplierDTO.nitSupplier);
 
-            if (supplierDTO == null || supplier == null) return NotFound();
+            if (supplierDTO == null || supplier == null)
+            {
+                Log.Error($"El proveedor al cual que desea cambiar el estado  no fue encontrado {supplierDTO.nitSupplier}, cod error {NotFound().StatusCode}");
+                return NotFound();
+            }
             supplier.IsActiveSupplier = supplierDTO.isActive;
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information("Se edito el estado del proveedor con id: {@id} ", supplier.IdSupplier);
             }
             catch (DbUpdateConcurrencyException)
             {

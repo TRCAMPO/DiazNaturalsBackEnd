@@ -9,6 +9,7 @@ using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Encrypt;
 using Microsoft.AspNetCore.Authorization;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -35,6 +36,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Clients == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Clients, cod error 500, Internal Server error");
                 return NotFound();
             }
 
@@ -64,6 +66,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Clients == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Clients, cod error 500, Internal Server error");
                 return NotFound();
             }
 
@@ -94,6 +97,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Clients == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Clients, cod error 500, Internal Server error");
                 return NotFound();
             }
 
@@ -123,6 +127,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Clients == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Clients, cod error 500, Internal Server error");
                 return NotFound();
             }
             var client = await _context.Clients.FindAsync(id);
@@ -144,6 +149,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             Client client = SearchClient(search);
             if (client == null||!client.IsActiveClient)
             {
+                Log.Error($"No se encontro un cliente activo con el nombre, {search}, " + $"cod error {NotFound().StatusCode}");
                 return NotFound();
             }
             var clientDTO = new ClientsDTO
@@ -169,6 +175,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             Client client = SearchClientEmail(search);
             if (client == null || !client.IsActiveClient)
             {
+                Log.Error($"No se encontro un cliente activo para, {search}, " + $"cod error {NotFound().StatusCode}");
                 return NotFound();
             }
             var clientDTO = new ClientsDTO
@@ -215,17 +222,31 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (clientDTO == null)
             {
+                Log.Error($"Error en el contenido de la peticion para editar el cliente con id, {id}, " + $"cod error {BadRequest().StatusCode}");
                 return BadRequest();
             }
             if(clientDTO.nameClient==null || clientDTO.emailClient==null|| clientDTO.addressClient==null || clientDTO.nitClient==null || clientDTO.cityClient==null || clientDTO.stateClient==null
                 || clientDTO.phoneClient==null || clientDTO.nameContactClient==null) return BadRequest();
-            if (ClientNameExistsEdit(clientDTO.nameClient, clientDTO.idClient)) return Conflict("El nombre de cliente ya existe");
-            if (ClientNitExistsEdit(clientDTO.nitClient, clientDTO.idClient)) return Conflict("El Nit de cliente ya existe");
-            if (ClientEmailExistsEdit(clientDTO.emailClient, clientDTO.idClient)) return Conflict("El email de cliente ya existe");
+            if (ClientNameExistsEdit(clientDTO.nameClient, clientDTO.idClient))
+            {
+                Log.Warning($"Se intento agregar un cliente cuyo nombre ya existe en la base de datos: {clientDTO.nameClient}, cod error {Conflict().StatusCode}");
+                return Conflict("El nombre de cliente ya existe");
+            }
+            if (ClientNitExistsEdit(clientDTO.nitClient, clientDTO.idClient))
+            {
+                Log.Warning($"Se intento agregar un cliente cuyo nit ya existe en la base de datos: {clientDTO.nitClient}, cod error {Conflict().StatusCode}");
+                return Conflict("El Nit de cliente ya existe");
+            }
+            if (ClientEmailExistsEdit(clientDTO.emailClient, clientDTO.idClient))
+            {
+                Log.Warning($"Se intento agregar un cliente cuyo correo ya existe en la base de datos: {clientDTO.emailClient}, cod error {Conflict().StatusCode}");
+                return Conflict("El email de cliente ya existe");
+            }
 
             var client = _context.Clients.FirstOrDefault(i => i.IdClient == id);
             if (client == null || !client.IsActiveClient)
             {
+                Log.Error($"No se encontro un cliente activo con el id, {id}, " + $"cod error {NotFound().StatusCode}");
                 return NotFound();
             }
             client.NitClient = clientDTO.nitClient;
@@ -242,6 +263,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information("Información del cliente actualizado: {@Client}", clientDTO);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -265,11 +287,21 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Clients == null || clientDTO == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Clients, cod error 500, Internal Server error");
                 return Problem("Entity set 'DiazNaturalsContext.Clients'  is null.");
             }
-            if(ClientNameExists(clientDTO.nameClient))return Conflict("El nombre de cliente ya existe");
-            if(ClientNitExists(clientDTO.nitClient)) return Conflict("El Nit de cliente ya existe");
-            if (ClientEmailExists(clientDTO.emailClient)) return Conflict("El email de cliente ya existe");
+            if (ClientNameExists(clientDTO.nameClient)) {
+                Log.Warning($"Se intento agregar un cliente cuyo nombre ya existe en la base de datos: {clientDTO.nameClient}, cod error {Conflict().StatusCode}");
+                return Conflict("El nombre de cliente ya existe"); 
+            }
+            if (ClientNitExists(clientDTO.nitClient)) {
+                Log.Warning($"Se intento agregar un cliente cuyo nit ya existe en la base de datos: {clientDTO.nitClient}, cod error {Conflict().StatusCode}");
+                return Conflict("El Nit de cliente ya existe"); 
+            }
+            if (ClientEmailExists(clientDTO.emailClient)) {
+                Log.Warning($"Se intento agregar un cliente cuyo correo ya existe en la base de datos: {clientDTO.emailClient}, cod error {Conflict().StatusCode}");
+                return Conflict("El email de cliente ya existe"); 
+            }
 
             string password = GenerateRandomCode();
             HashedFormat hash = HashEncryption.Hash(password);
@@ -280,6 +312,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             };
             if (credential == null)
             {
+                Log.Error($"Error al generar credenciales para: {clientDTO.emailClient}");
                 return NotFound();
             }
 
@@ -301,15 +334,20 @@ namespace BACK_END_DIAZNATURALS.Controllers
             };
             if (client == null)
             {
+                Log.Error($"Error al crear el nuevo usuario: {clientDTO.emailClient}, cod error {NotFound().StatusCode}");
                 return NotFound();
             }
             try
             {
                 _context.Clients.Add(client);
                 await _context.SaveChangesAsync();
+                Log.Information($"Se agrego el usuario: {clientDTO.nameClient} con correo: {clientDTO.emailClient}");
 
             }
-            catch { return BadRequest(); }
+            catch {
+                Log.Error($"Error al crear el nuevo usuario: {clientDTO.emailClient}, cod error {BadRequest().StatusCode}");
+                return BadRequest(); 
+            }
 
             try
             {
@@ -317,7 +355,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 await emailService.SendEmail(clientDTO.emailClient, "Crendecial de acceso a la pagina DiazNaturals", "Su constraseña predeterminada es: " + password + "\nPor favor actualizar la contraseña lo mas pronto posible");
                 return Ok();
             }
-            catch { return BadRequest(); }
+            catch {
+                Log.Error($"Error al enviar correo con credenciales para: {clientDTO.emailClient}");
+                return BadRequest(); 
+            }
         }
 
 
@@ -346,6 +387,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             if (clientDTO == null || client == null)
             {
+                Log.Error("Error en el cambio de estatus del cliente nit: {@Client}", clientDTO);
                 return NotFound();
             }
 
@@ -353,6 +395,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Warning($"Cambio de estado realizado al cliente {client.NameClient}");
             }
             catch (DbUpdateConcurrencyException)
             {
