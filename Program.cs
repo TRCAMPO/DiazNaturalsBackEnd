@@ -84,7 +84,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .WriteTo.File("logs/" + fechaFormateada, rollingInterval: RollingInterval.Month)
     .CreateLogger();
-Log.Information("Corriendo en:");
+//Log.Information("Corriendo en:");
 
 builder.Services.AddSwaggerGen(c =>
 {

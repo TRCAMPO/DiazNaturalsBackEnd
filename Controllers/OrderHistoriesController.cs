@@ -184,7 +184,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                     IdClient = c.IdOrderNavigation.IdClient,
                     StatusOrder = c.IdStatusNavigation.NameStatus,
                     DateOrderHistory = c.DateOrderHistory
-                })
+                }).OrderBy(c => c.DateOrderHistory)
                 .ToList();
             return Ok(orders);
         }

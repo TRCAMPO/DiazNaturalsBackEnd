@@ -347,7 +347,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-                Log.Information("Se modifico el producto con id: {@id}, datos modificados {@Product}", id,productDTO);
+                Log.Information($"Se modifico el producto con id: {id}, datos modificados {{\"IdProduct\":{id},\"name\":\"{productDTO.name}\"" +
+                    $",\"supplier\":\"{productDTO.supplier}\",\"price\":{productDTO.price},\"amount\":{productDTO.amount},\"presentation\":\"{productDTO.presentation}\",\"category\":\"{productDTO.category}\",\"\"image\":\"" +
+                    $"{productDTO.image}\",\"$type\":\"Product\"}}" );
             }
             catch (DbUpdateConcurrencyException)
             {
