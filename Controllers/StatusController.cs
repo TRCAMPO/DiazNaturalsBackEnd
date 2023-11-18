@@ -9,6 +9,7 @@ using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Google.Apis.Util;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -77,13 +78,22 @@ namespace BACK_END_DIAZNATURALS.Controllers
             switch (id)
             {
                 case 1:
-                    getStatusDTO = getStatusNext(2, 5);
+                    getStatusDTO = getStatusNext(1,2, 5);
                     break;
                 case 2:
-                    getStatusDTO = getStatusNext(3);
+                    getStatusDTO = getStatusNext(2, 3);
                     break;
                 case 3:
+                    getStatusDTO = getStatusNext(3, 4);
+                    break;
+                case 4:
                     getStatusDTO = getStatusNext(4);
+                    break;
+                case 5:
+                    getStatusDTO = getStatusNext(5);
+                    break;
+                case 6:
+                    getStatusDTO = getStatusNext(6);
                     break;
             }
             if (getStatusDTO == null) return NotFound();
@@ -91,10 +101,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
 
-        private List<GetStatusDTO> getStatusNext(int idStatus, int idStatus2)
+        private List<GetStatusDTO> getStatusNext(int actual, int idStatus, int idStatus2)
         {
             var getStatusDTO = _context.Statuses
-                        .Where(c => c.IdStatus == idStatus || c.IdStatus == idStatus2)
+                        .Where(c => c.IdStatus== actual || c.IdStatus == idStatus || c.IdStatus == idStatus2 )
                         .Select(p => new GetStatusDTO
                         {
                             IdStatus = p.IdStatus,
@@ -105,10 +115,25 @@ namespace BACK_END_DIAZNATURALS.Controllers
         }
 
 
-        private List<GetStatusDTO> getStatusNext(int idStatus)
+        private List<GetStatusDTO> getStatusNext(int actual, int idStatus)
         {
             var getStatusDTO = _context.Statuses
-                        .Where(c => c.IdStatus == idStatus)
+                        .Where(c => c.IdStatus == actual || c.IdStatus == idStatus)
+                        .Select(p => new GetStatusDTO
+                        {
+                            IdStatus = p.IdStatus,
+                            NameStatus = p.NameStatus,
+                        }).ToList();
+
+            return getStatusDTO;
+        }
+
+
+
+        private List<GetStatusDTO> getStatusNext(int actual)
+        {
+            var getStatusDTO = _context.Statuses
+                        .Where(c => c.IdStatus == actual)
                         .Select(p => new GetStatusDTO
                         {
                             IdStatus = p.IdStatus,
@@ -126,6 +151,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Statuses == null)
             {
+                Log.Information($"Error en el servidor, cod error 500");
                 return Problem("Entity set 'DiazNaturalsContext.Entries'  is null.");
             }
             Status statusAux = new Status
@@ -135,6 +161,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             _context.Statuses.Add(statusAux);
             await _context.SaveChangesAsync();
+            Log.Information($"Se agrego la categoria {statusAux.IdStatus}");
             return Ok(statusAux);
 
         }
@@ -145,14 +172,23 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [HttpPut]
         public async Task<IActionResult> PutStatus(int id, GetStatusDTO status)
         {
-            if (id != status.IdStatus) return BadRequest();
+            if (id != status.IdStatus)
+            {
+                Log.Error($"Error en los parametros de la aplicacion para editar el estado: {id}");
+                return BadRequest();
+            }
             var statusAux = _context.Statuses.Find(id);
-            if (statusAux == null) return NotFound();
+            if (statusAux == null)
+            {
+                Log.Error($"No se encontro el estado: {id}");
+                return NotFound();
+            }
             statusAux.NameStatus = status.NameStatus;
             _context.Entry(statusAux).State = EntityState.Modified;
             try
             {
                 await _context.SaveChangesAsync();
+                Log.Information("Información del estado actualizada: {@Status}", status);
             }
             catch (DbUpdateConcurrencyException)
             {

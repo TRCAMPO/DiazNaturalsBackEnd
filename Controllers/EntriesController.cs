@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
 using BACK_END_DIAZNATURALS.DTO;
 using Microsoft.AspNetCore.Authorization;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -30,8 +31,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<EntryGetDTO>>> GetEntries()
         {
-            if (_context.Entries == null) return NotFound();
-           
+            if (_context.Entries == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Entries, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var entry= await _context.Entries
                 .Include(p=> p.IdProductNavigation)
                 .Select(o=> new EntryGetDTO
@@ -54,7 +58,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<EntryGetDTO>> GetEntry(int id)
         {
-            if (_context.Entries == null) return NotFound();
+            if (_context.Entries == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Entries, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var entry = await _context.Entries
                 .Where(p => p.IdEntry == id)
                 .Select(p => new EntryGetDTO
