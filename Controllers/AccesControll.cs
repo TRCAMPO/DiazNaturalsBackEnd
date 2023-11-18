@@ -150,6 +150,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Administrators == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de administradores y usuarios, cod error 500, Internal Server error");
                 return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
             }
             try
@@ -158,7 +159,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
             catch {
                 Log.Warning($"Intento de acceso con formato de correo invalido {email}"); 
-                return BadRequest("Email no válido"); }
+                return BadRequest("Email no valido"); }
 
             if (_context.Administrators.Any(i => i.EmailAdministrator == email.Email) || _context.Clients.Any(i => i.EmailClient == email.Email))
             {
@@ -185,9 +186,9 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (codeValidator == null)
             {
+                Log.Error($"Error en el contenido de la peticion para validar el codigo de recuperacion, {codeValidator.Email}, "+ $"cod error {NotFound().StatusCode}");
                 return StatusCode(StatusCodes.Status404NotFound, new { token = "" });
             }
-
             bool emailExists = _context.Administrators.Any(a => a.EmailAdministrator == codeValidator.Email);
             bool emailExistsClient = _context.Clients.Any(a => a.EmailClient == codeValidator.Email);
             string cachedCode;
@@ -202,7 +203,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 Log.Warning($"Validacion exitosa de codigo de recuperacion para el correo  {codeValidator.Email}");
                 return Ok(new { exists = emailExistsClient });
             }
-            Log.Warning($"Validacion INCORRECTA de codigo de recuperacion para el correo  {codeValidator.Email}");
+            Log.Warning($"Validacion INCORRECTA de codigo de recuperacion para el correo  {codeValidator.Email}, cod {NotFound().StatusCode}");
             return StatusCode(StatusCodes.Status404NotFound, new { token = cachedCode });
         }
 
@@ -216,6 +217,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             if (administrator == null && client == null)
             {
+                Log.Error($"No se encontro el usuario con correo , {newCredential.email}, " + $"cod error {NotFound().StatusCode}");
                 return NotFound();
             }
 

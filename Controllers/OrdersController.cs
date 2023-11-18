@@ -28,7 +28,8 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
           if (_context.Orders == null)
           {
-              return NotFound();
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Orders, cod error 500, Internal Server error");
+                return NotFound();
           }
             return await _context.Orders.ToListAsync();
         }
@@ -57,13 +58,13 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (id != orderDTO.IdOrder)
             {
-                Log.Warning($"Solicitud incorrecta para editar order: {id}, error {BadRequest().StatusCode} ");
+                Log.Warning($"Solicitud incorrecta para editar order: {id}, cod error {BadRequest().StatusCode} ");
                 return BadRequest();
             }
 
             var order =  _context.Orders.FirstOrDefault(o => o.IdOrder == id);
             if(order == null) {
-                Log.Warning($"No se encontro la orden : {id}, error {NotFound().StatusCode}, para poder editarla ");
+                Log.Warning($"No se encontro la orden : {id}, para poder editarla, cod error {NotFound().StatusCode}");
                 return NotFound(); 
             }
             var c = _context.Orders.Where(c => c.IdOrder != order.IdOrder)
@@ -71,7 +72,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 .Any(z => z.ImageOrder == orderDTO.ImageOrder);
 
             if (c) {
-                Log.Warning($"Conflicto en los nuevos datos a agregar a la orden: {id}, error {Conflict().StatusCode} ");
+                Log.Warning($"Conflicto en los nuevos datos a agregar a la orden: {id}, cod error {Conflict().StatusCode} ");
                 return Conflict(); }
             order.ImageOrder = orderDTO.ImageOrder;
 
@@ -80,13 +81,13 @@ namespace BACK_END_DIAZNATURALS.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-                Log.Information("Información de orden actualizada: {@Order}", orderDTO);
+                Log.Information("Informacion de orden actualizada: {@Order}", orderDTO);
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!OrderExists(id))
                 {
-                    Log.Warning($"No se encontro la orden : {id}, error {NotFound().StatusCode}, para poder editarla ");
+                    Log.Warning($"No se encontro la orden : {id} para poder editarla, cod error {NotFound().StatusCode} ");
                     return NotFound();
                 }
                 else
@@ -105,14 +106,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Orders == null)
             {
-
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Orders, cod error 500, Internal Server error");
                 return Problem("Entity set 'DiazNaturalsContext.Orders' is null.");
             }
             bool checkClient = _context.Clients.Any(c => c.IdClient == orderDTO.IdClient);
 
             if (!checkClient) {
-                Log.Warning($"No se encontro la el cliente: {orderDTO.IdClient}, error {NotFound().StatusCode}, para" +
-                    $" asignarle nueva orden de compra");
+                Log.Warning($"No se encontro el cliente: {orderDTO.IdClient} para" +
+                    $" asignarle nueva orden de compra, cod error {NotFound().StatusCode},");
                 return NotFound(); 
             };
 
@@ -134,7 +135,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 bool checkProduct = _context.Products.Any(c => c.IdProduct == aux.ProductId);
                 if (!checkClient)
                 {
-                    Log.Warning($"No se encontro el producto : {aux.ProductId}, error {NotFound().StatusCode}, para agregar producto de la orden {order.IdOrder}");
+                    Log.Warning($"No se encontro el producto : {aux.ProductId} para agregar producto de la orden {order.IdOrder}, cod error {NotFound().StatusCode}");
                     _context.Orders.Remove(order);
                     return NoContent();
                 }

@@ -33,7 +33,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetAllProducts()
         {
-            if (_context.Products == null) return NotFound();
+            if (_context.Products == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Products, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var products = _context.Products
               .Include(p => p.IdSupplierNavigation)
               .Include(p => p.IdPresentationNavigation)
@@ -62,7 +66,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetActiveProducts()
         {
-            if (_context.Products == null) return NotFound();
+            if (_context.Products == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Products, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var products = _context.Products
               .Where(p => p.IsActiveProduct == true)
               .Include(p => p.IdSupplierNavigation)
@@ -93,7 +101,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetInactiveProducts()
         {
-            if (_context.Products == null) return NotFound();
+            if (_context.Products == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Products, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var products = _context.Products
               .Where(p => p.IsActiveProduct == false)
               .Include(p => p.IdSupplierNavigation)
@@ -122,7 +134,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<ProductDTO>> GetProduct(int id)
         {
-            if (_context.Products == null) return NotFound();
+            if (_context.Products == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Products, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var productDTO = await _context.Products
             .Where(p => p.IdProduct == id)
             .Select(p => new ProductDTO
@@ -149,7 +165,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<ProductDTO>> GetProduct(string search, string suppliers, string presentation)
         {
-            if (_context.Products == null || search == null || suppliers == null || presentation == null) return BadRequest();
+            if (_context.Products == null || search == null || suppliers == null || presentation == null)
+            {
+                Log.Error($"Error en el contenido de la peticion para editar la producto, {search}, con proveedor {suppliers}, y con presetancion {presentation} " + $"cod error {BadRequest().StatusCode}");
+                return BadRequest();
+            }
             ProductSearchDTO productSearch = new ProductSearchDTO
             {
                 presentation = presentation,
@@ -157,7 +177,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 search = search,
             };
             Product p = SearchProduct(productSearch);
-            if (p == null) return NotFound();
+            if (p == null)
+            {
+                Log.Error($"Error en el contenido de la peticion para editar la producto, {search}, con proveedor {suppliers}, y con presetancion {presentation} " + $"cod error {NotFound().StatusCode}");
+                return NotFound();
+            }
             if (p.IsActiveProduct)
             {
                 var productDto = new ProductDTO
@@ -214,7 +238,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
   
         public IActionResult GetValidateQuantityProduct(string search, string suppliers, string presentation, int quantityProduct)
         {
-            if (_context.Products == null || search == null || suppliers == null || presentation == null) return BadRequest();
+            if (_context.Products == null || search == null || suppliers == null || presentation == null)
+            {
+                Log.Error($"Error en el contenido de la peticion para editar la producto, {search}, con proveedor {suppliers}, y con presetancion {presentation} " + $"cod error {BadRequest().StatusCode}");
+                return BadRequest();
+            }
             ProductSearchDTO productSearch = new ProductSearchDTO
             {
                 presentation = presentation,
@@ -258,7 +286,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<ActionResult<IEnumerable<ProductAddDTO>>> GetLowQuantityProducts()
         {
 
-            if (_context.Products == null) return NotFound();
+            if (_context.Products == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Products, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var products = _context.Products
               .Where(p => p.IsActiveProduct == true)
               .Include(p => p.IdSupplierNavigation)
@@ -301,7 +333,8 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 Log.Information($"No se encontro el producto: {id}, cod error {NotFound().StatusCode}");
                 return NotFound();
             } 
-            if (ProductsExistsEdit(suplier.IdSupplier, presentation.IdPresentation, productDTO.name, productDTO.IdProduct)) return Conflict("Ya existe un producto con el nombre \"" + productDTO.name + "\" el proveedor \"" + productDTO.supplier + "\" y la presentacion \"" + productDTO.presentation + "\".");
+            if (ProductsExistsEdit(suplier.IdSupplier, presentation.IdPresentation, productDTO.name, productDTO.IdProduct))
+                return Conflict("Ya existe un producto con el nombre \"" + productDTO.name + "\" el proveedor \"" + productDTO.supplier + "\" y la presentacion \"" + productDTO.presentation + "\".");
             product.NameProduct = productDTO.name;
             product.DescriptionProduct = productDTO.description;
             product.ImageProduct = productDTO.image;
@@ -314,7 +347,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-                Log.Information("Se modifico el producto con id: {@id}, datos modificados {@Product}", id,productDTO + $"cod error {NotFound().StatusCode}");
+                Log.Information("Se modifico el producto con id: {@id}, datos modificados {@Product}", id,productDTO);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -331,7 +364,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<Product>> PostProduct(ProductAddDTO productDTO)
         {
-            if (_context.Products == null || productDTO == null) return Problem("Entity set 'DiazNaturalsContext.Products'  is null.");
+            if (_context.Products == null || productDTO == null)
+            {
+
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Products, cod error 500, Internal Server error"); return Problem("Entity set 'DiazNaturalsContext.Products'  is null.");
+            }
             if (productDTO.supplier == null || productDTO.presentation == null || productDTO.name == null || productDTO.category == null) 
             {
                 Log.Error($"Existen parametros nulos dentro de la solicitud para agregar producto, cod error {BadRequest().StatusCode}");
@@ -372,7 +409,8 @@ namespace BACK_END_DIAZNATURALS.Controllers
                 };
                 _context.Entries.Add(entry);
                 await _context.SaveChangesAsync();
-                Log.Information($"Se agrego la entrada identificada con el id {entry.IdEntry}");
+                Log.Information($"Se agrego una nueva entrada de {product.QuantityProduct} unidades para el producto {product.IdProduct} " +
+                    $"en el momento en que se creo este producto");
             }
             return Ok();
         }
@@ -441,6 +479,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
                     _context.Entries.Add(entry);
                     await _context.SaveChangesAsync();
                     Log.Information($"Se agrego una nueva entrada de {quantity} unidades para el producto {p.IdProduct}");
+                    return Ok();
                 }
             }
             catch (DbUpdateConcurrencyException)

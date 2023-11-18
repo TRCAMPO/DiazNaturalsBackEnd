@@ -161,7 +161,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             _context.Statuses.Add(statusAux);
             await _context.SaveChangesAsync();
-            Log.Information($"Se agregaron la categoria {statusAux.IdStatus}");
+            Log.Information($"Se agrego la categoria {statusAux.IdStatus}");
             return Ok(statusAux);
 
         }

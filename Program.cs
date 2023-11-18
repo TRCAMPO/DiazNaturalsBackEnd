@@ -82,7 +82,7 @@ string fechaFormateada = fecha.ToString("yyyy-MM-dd  HH-mm-ss  ") +".txt";
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.File("logs/" + fechaFormateada, rollingInterval: RollingInterval.Minute)
+    .WriteTo.File("logs/" + fechaFormateada, rollingInterval: RollingInterval.Hour)
     .CreateLogger();
 Log.Information("Corriendo en:");
 

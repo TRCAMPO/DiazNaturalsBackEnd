@@ -27,6 +27,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Administrators == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de administradores, cod error 500, Internal Server error");
                 return NotFound();
             }
             var administrator = await _context.Administrators.Select(p => new AdministratorGetDTO
@@ -46,12 +47,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Administrators == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de administradores, cod error 500, Internal Server error");
                 return NotFound();
             }
             var administrator = await _context.Administrators.FindAsync(id);
 
             if (administrator == null)
             {
+
                 return NotFound();
             }
             var administratorDTO = new AdministratorGetDTO
@@ -69,7 +72,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<IActionResult> PutAdministrator(string email, AdministratorEditDTO administratorDTO)
         {
-            if(administratorDTO == null)return NotFound();
+            if (administratorDTO == null)
+            {
+                Log.Error($"Error en la peticion para editar el usuario {email}, cod error {NotFound().StatusCode}");
+                return NotFound();
+            }
             var administrator= _context.Administrators.FirstOrDefault(i=>i.EmailAdministrator == email);
             if (administrator == null)
             {
@@ -103,6 +110,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Administrators == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de administradores, cod error 500, Internal Server error");
                 return Problem("Entity set 'DiazNaturalsContext.Administrators'  is null.");
             }
 

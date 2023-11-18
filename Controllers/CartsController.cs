@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BACK_END_DIAZNATURALS.Model;
+using Serilog;
 
 namespace BACK_END_DIAZNATURALS.Controllers
 {
@@ -26,7 +27,8 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
           if (_context.Carts == null)
           {
-              return NotFound();
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Carts, cod error 500, Internal Server error");
+                return NotFound();
           }
             var cart = _context.Carts
                   .Where(c => c.IdOrder == idOrder)

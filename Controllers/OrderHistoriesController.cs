@@ -31,6 +31,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.OrderHistories == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de OrderHistories, cod error 500, Internal Server error");
                 return NotFound();
             }
 
@@ -65,6 +66,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.OrderHistories == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de OrderHistories, cod error 500, Internal Server error");
                 return NotFound();
             }
             var orders = _context.OrderHistories
@@ -99,6 +101,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.OrderHistories == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de OrderHistories, cod error 500, Internal Server error");
                 return NotFound();
             }
             var orders = _context.OrderHistories
@@ -194,14 +197,14 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Orders == null)
             {
-                Log.Error($"Error en la conexion con la base de datos para la tabla Order");
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de OrderHistories, cod error 500, Internal Server error");
                 return Problem("Entity set 'DiazNaturalsContext.Orders' is null.");
             }
             var status = _context.Statuses.FirstOrDefault(o => o.NameStatus == orderDTO.NameStatus);
             var or = _context.Orders.FirstOrDefault(o => o.IdOrder == orderDTO.IdOrder);
             if (status == null || or == null)
             {
-                Log.Error("Error en la peticion para registrar un nuevo historial de una orden de compra: {@Order}", orderDTO);
+                Log.Error("Error en la peticion para registrar un nuevo historial de una orden de compra: {@Order}, ", orderDTO+ $"cod error {NotFound().StatusCode}");
                 return NotFound();
             }
             var order = _context.OrderHistories
@@ -211,7 +214,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
 
             if (order != null)
             {
-                Log.Error("Error orden: {@Order} no encontrada", orderDTO);
+                Log.Error("Error en la busqueda de la orden: {@Order}", orderDTO + $"cod error {Conflict().StatusCode}");
                 return Conflict();
             }
 
@@ -227,7 +230,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
             }
             _context.OrderHistories.Add(orderHistory);
             await _context.SaveChangesAsync();
-            Log.Warning($"Nuevo historial agregado para la orden: {orderHistory.IdStatus}");
+            Log.Warning($"Nuevo historial agregado para la orden: {orderHistory.IdStatus}, con estado {orderDTO.NameStatus}");
             return Ok();
         }
 

@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using BACK_END_DIAZNATURALS.DTO;
 using BACK_END_DIAZNATURALS.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +28,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<IActionResult> LoadImage(IFormFile file)
         {
             if (file == null || file.Length == 0)
+            {
+                Log.Error($"Error en el contenido de la peticion cargar imagen de producto, {file.FileName}, " + $"cod error {BadRequest().StatusCode}");
                 return BadRequest("Archivo no válido");
+            }
             string fileName = file.FileName;
             string url = await _firebaseStorageService.ImageUploadAsync(file, fileName);
             string[] urlParts = url.Split('/');
@@ -45,7 +49,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             var imageStream = await _firebaseStorageService.GetImageAsync(imageName);
 
-            if (imageStream == null) { return NotFound(); }
+            if (imageStream == null) 
+            {
+                Log.Error($"Error en el contenido de la peticion obtener imagen de producto, {imageName}, " + $"cod error {BadRequest().StatusCode}");
+                return NotFound(); 
+            }
             return File(imageStream, "image/png");
         }
 
@@ -56,7 +64,10 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<IActionResult> LoadImageProofPaymet(IFormFile file)
         {
             if (file == null || file.Length == 0)
+            {
+                Log.Error($"Error en el contenido de la peticion cargar imagen de comprobante de pago, {file.FileName}, " + $"cod error {NotFound().StatusCode}");
                 return BadRequest("Archivo no válido");
+            }
             string fileName = file.FileName;
             string url = await _firebaseStorageService.ImageUploadProofAsync(file, fileName);
             string[] urlParts = url.Split('/');
@@ -74,7 +85,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         public async Task<IActionResult> GetImageProofPaymet(string imageName)
         {
             var imageStream = await _firebaseStorageService.GetImageProofAsync(imageName);
-            if (imageStream == null) { return NotFound(); }
+            if (imageStream == null) 
+            {
+                Log.Error($"Error en el contenido de la peticion obtener imagen de comprobante de pago, {imageName}, " + $"cod error {NotFound().StatusCode}");
+                return NotFound(); 
+            }
             return File(imageStream, "image/png");
         }
     }

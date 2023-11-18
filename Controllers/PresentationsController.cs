@@ -31,7 +31,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<PresentationDTO>>> GetPresentations()
         {
-            if (_context.Presentations == null) return NotFound();
+            if (_context.Presentations == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Presentations, cod error 500, Internal Server error");
+                return NotFound();
+            }
             var presentationDTOs = await _context.Presentations
            .Select(c => new PresentationDTO
            {
@@ -50,6 +54,7 @@ namespace BACK_END_DIAZNATURALS.Controllers
         {
             if (_context.Presentations == null)
             {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Presentations, cod error 500, Internal Server error");
                 return NotFound();
             }
             var presentation = await _context.Presentations.FindAsync(id);
@@ -72,11 +77,15 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<IActionResult> PutPresentation(int id, PresentationDTO presentationDTO)
         {
-            if (id != presentationDTO.IdPresentation) return BadRequest();
+            if (id != presentationDTO.IdPresentation)
+            {
+                Log.Error($"Error en el contenido de la peticion para editar la presentacion, {id}, " + $"cod error {BadRequest().StatusCode}");
+                return BadRequest();
+            }
             var presentation = _context.Presentations.Find(id);
             if (presentation == null)
             {
-                Log.Error($"Presentación no encontrada: {id}, Cod error {NotFound().StatusCode}");
+                Log.Error($"Presentacion no encontrada: {id}, Cod error {NotFound().StatusCode}");
                 return NotFound();
             }
             presentation.NamePresentation = presentationDTO.NamePresentation;
@@ -103,7 +112,11 @@ namespace BACK_END_DIAZNATURALS.Controllers
         [Authorize]
         public async Task<ActionResult<Presentation>> PostPresentation(PresentationAddDTO presentationDTO)
         {
-            if (_context.Presentations == null) return Problem("Entity set 'DiazNaturalsContext.Presentations'  is null.");
+            if (_context.Presentations == null)
+            {
+                Log.Error($"Error en el acceso al servidor al intentar extraer informacion de Presentations, cod error 500, Internal Server error");
+                return Problem("Entity set 'DiazNaturalsContext.Presentations'  is null.");
+            }
             if (presentationDTO == null) return NoContent();
             if (PresentationExistsName(presentationDTO.NamePresentation))
             {
