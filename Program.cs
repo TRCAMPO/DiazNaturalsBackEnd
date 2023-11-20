@@ -77,12 +77,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 builder.Services.AddScoped<FileListService>(); // Asegúrate de tener esta línea en tu método ConfigureServices de Startup.cs
-DateTime fecha= DateTime.Now;
-string fechaFormateada = fecha.ToString("yyyy-MM-dd  HH-mm-ss  ") +".txt";
+
+
+ManageCSV c= new ManageCSV();
+List<string> x = c.ReadFile();
+List<DateTime> dates = new List<DateTime>();
+x.ForEach(v => dates.Add(DateTime.Parse(v)));
+for(int i = 0; i < dates.Count; i++)
+{
+    DateTime f = DateTime.Now;
+    if (dates[i].Year!=f.Year || dates[i].Month != f.Month)
+    {
+        c.addFile();
+    }
+}  
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.File("logs/" + fechaFormateada, rollingInterval: RollingInterval.Month)
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Month)
     .CreateLogger();
 //Log.Information("Corriendo en:");
 
