@@ -19,6 +19,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 builder.Services.AddSqlServer<DiazNaturalsContext>(builder.Configuration.GetConnectionString("DefaultConnection"));
 
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 var credeentials = GoogleCredential.FromJson(@"{
   ""type"": ""service_account"",
@@ -79,8 +85,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddScoped<FileListService>(); // Asegúrate de tener esta línea en tu método ConfigureServices de Startup.cs
 
 
-ManageCSV c= new ManageCSV();
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+
+ManageCSV c = new ManageCSV();
 List<string> x = c.ReadFile();
+if(x == null || x.Count<1)
+{
+    c.addFile();
+}
 List<DateTime> dates = new List<DateTime>();
 x.ForEach(v => dates.Add(DateTime.Parse(v)));
 for(int i = 0; i < dates.Count; i++)
